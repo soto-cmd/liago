@@ -19,7 +19,7 @@ export async function createSaleAction(formData: FormData) {
   const paymentMethod = String(formData.get("payment_method") || "") || null;
   const notes = String(formData.get("notes") || "").trim() || null;
 
-  const { error } = await supabase.rpc("create_sale", {
+  const { data, error } = await supabase.rpc("create_sale", {
     p_organization_id: organizationId,
     p_branch_id: branchId,
     p_customer_id: customerId,
@@ -31,12 +31,13 @@ export async function createSaleAction(formData: FormData) {
     p_items: items,
   });
 
-  if (error) redirect(`/app/sales?error=${encodeURIComponent(error.message.slice(0,80))}`);
+  if (error || !data) redirect(`/app/sales?error=${encodeURIComponent(error?.message.slice(0,80) || "save")}`);
 
   revalidatePath("/app/sales");
   revalidatePath("/app/debts");
   revalidatePath("/app/payments");
   revalidatePath("/app/inventory");
   revalidatePath("/app/cash");
-  redirect("/app/sales?created=1");
+  revalidatePath("/app");
+  redirect(`/app/sales/${data}?created=1`);
 }
