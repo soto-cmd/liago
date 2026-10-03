@@ -76,7 +76,22 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </form>
       </aside>
 
-      <main className="min-w-0">{children}</main>
+      <div className="min-w-0">
+        <header className="sticky top-0 z-30 border-b bg-white/95 backdrop-blur md:hidden print:hidden">
+          <div className="flex items-center justify-between px-4 py-3">
+            <Link href="/app" className="flex items-center gap-2 font-semibold"><Building2 className="h-5 w-5" /> LiaGo</Link>
+            <div className="flex items-center gap-1">
+              <Link href="/app/organizations" aria-label="Mis empresas" className="rounded-lg p-2 hover:bg-neutral-100"><Building2 className="h-4 w-4" /></Link>
+              <Link href="/app/settings" aria-label="Configuración" className="rounded-lg p-2 hover:bg-neutral-100"><Settings className="h-4 w-4" /></Link>
+              <form action={signOutAction}><button aria-label="Cerrar sesión" className="rounded-lg p-2 hover:bg-neutral-100"><LogOut className="h-4 w-4" /></button></form>
+            </div>
+          </div>
+          <nav className="flex gap-1 overflow-x-auto px-3 pb-3 text-xs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {navItems.map(([href, label, Icon]) => <Link key={href} href={href} className="flex shrink-0 items-center gap-1.5 rounded-full border bg-white px-3 py-2"><Icon className="h-3.5 w-3.5" /> {label}</Link>)}
+          </nav>
+        </header>
+        <main className="min-w-0">{children}</main>
+      </div>
     </div>
   );
 }
