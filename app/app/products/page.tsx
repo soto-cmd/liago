@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Plus, Search } from "lucide-react";
 import { requireActiveOrganization } from "@/lib/organizations/active-organization";
 import { createProductAction } from "./actions";
@@ -54,7 +55,6 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
         </details>
       </div>
 
-      {params.created ? <div className="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">Producto guardado correctamente.</div> : null}
       {params.error ? <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">No se pudo guardar. Verificá campos y códigos duplicados.</div> : null}
 
       <form className="mb-4 flex max-w-xl gap-2">
@@ -65,11 +65,11 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
       <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-neutral-50 text-neutral-600"><tr><th className="px-4 py-3">Código</th><th className="px-4 py-3">Producto</th><th className="px-4 py-3">SKU / Barra</th><th className="px-4 py-3">Costo</th><th className="px-4 py-3">Venta</th><th className="px-4 py-3">Tipo</th><th className="px-4 py-3">Estado</th></tr></thead>
+            <thead className="bg-neutral-50 text-neutral-600"><tr><th className="px-4 py-3">Código</th><th className="px-4 py-3">Producto</th><th className="px-4 py-3">SKU / Barra</th><th className="px-4 py-3">Costo</th><th className="px-4 py-3">Venta</th><th className="px-4 py-3">Tipo</th><th className="px-4 py-3">Estado</th><th className="px-4 py-3"></th></tr></thead>
             <tbody className="divide-y">
               {products?.length ? products.map((p) => (
-                <tr key={p.id} className="hover:bg-neutral-50"><td className="px-4 py-3 font-mono font-medium">{p.code}</td><td className="px-4 py-3"><div className="font-medium">{p.name}</div><div className="text-xs text-neutral-500">{p.unit}{p.track_stock ? ` · mínimo ${p.min_stock}` : " · sin stock"}</div></td><td className="px-4 py-3"><div>{p.sku || "—"}</div><div className="text-xs text-neutral-500">{p.barcode || "—"}</div></td><td className="px-4 py-3">{Number(p.purchase_price).toLocaleString("es-PY")}</td><td className="px-4 py-3 font-medium">{Number(p.sale_price).toLocaleString("es-PY")}</td><td className="px-4 py-3">{p.item_type === "SERVICE" ? "Servicio" : "Producto"}</td><td className="px-4 py-3">{p.status}</td></tr>
-              )) : <tr><td colSpan={7} className="px-4 py-10 text-center text-neutral-500">Todavía no hay productos.</td></tr>}
+                <tr key={p.id} className="hover:bg-neutral-50"><td className="px-4 py-3 font-mono font-medium">{p.code}</td><td className="px-4 py-3"><div className="font-medium">{p.name}</div><div className="text-xs text-neutral-500">{p.unit}{p.track_stock ? ` · mínimo ${p.min_stock}` : " · sin stock"}</div></td><td className="px-4 py-3"><div>{p.sku || "—"}</div><div className="text-xs text-neutral-500">{p.barcode || "—"}</div></td><td className="px-4 py-3">{Number(p.purchase_price).toLocaleString("es-PY")}</td><td className="px-4 py-3 font-medium">{Number(p.sale_price).toLocaleString("es-PY")}</td><td className="px-4 py-3">{p.item_type === "SERVICE" ? "Servicio" : "Producto"}</td><td className="px-4 py-3">{p.status}</td><td className="px-4 py-3 text-right"><Link href={`/app/products/${p.id}`} className="font-medium underline underline-offset-4">Ver / editar</Link></td></tr>
+              )) : <tr><td colSpan={8} className="px-4 py-10 text-center text-neutral-500">Todavía no hay productos.</td></tr>}
             </tbody>
           </table>
         </div>
