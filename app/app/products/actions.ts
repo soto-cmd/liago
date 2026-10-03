@@ -16,15 +16,17 @@ function numberValue(formData: FormData, key: string, fallback = 0) {
   return Number.isFinite(value) ? value : fallback;
 }
 
+function cleanItemType(value: FormDataEntryValue | null) {
+  return value === "SERVICE" ? "SERVICE" : "PRODUCT";
+}
+
 export async function createProductAction(formData: FormData) {
   const { supabase, organizationId, userId } = await requireActiveOrganization();
-  const itemType = String(formData.get("item_type") || "PRODUCT");
+  const itemType = cleanItemType(formData.get("item_type"));
   const code = String(formData.get("code") || "").trim();
   const name = String(formData.get("name") || "").trim();
 
-  if (!code || !name) {
-    redirect("/app/products?error=required");
-  }
+  if (!code || !name) redirect("/app/products?error=required");
 
   const trackStock = itemType === "PRODUCT" && formData.get("track_stock") === "on";
   const openingStock = trackStock ? numberValue(formData, "opening_stock", 0) : 0;
@@ -54,8 +56,7 @@ export async function createProductAction(formData: FormData) {
     .single();
 
   if (error || !product) {
-    const duplicate = error?.code === "23505";
-    redirect(`/app/products?error=${duplicate ? "duplicate_code" : "save"}`);
+    redirect(`/app/products?error=${error?.code === "23505" ? "duplicate_code" : "save"}`);
   }
 
   if (openingStock !== 0) {
@@ -69,7 +70,7 @@ export async function createProductAction(formData: FormData) {
       .maybeSingle();
 
     if (branch) {
-      await supabase.from("inventory_movements").insert({
+      const { error: movementError } = await supabase.from("inventory_movements").insert({
         organization_id: organizationId,
         branch_id: branch.id,
         product_id: product.id,
@@ -79,10 +80,64 @@ export async function createProductAction(formData: FormData) {
         notes: "Stock inicial",
         created_by: userId,
       });
+      if (movementError) redirect(`/app/products/${product.id}?error=opening_stock`);
     }
   }
 
   revalidatePath("/app/products");
   revalidatePath("/app/inventory");
-  redirect("/app/products?created=1");
+  redirect(`/app/products/${product.id}?created=1`);
+}
+
+export async function updateProductAction(formData: FormData) {
+  const { supabase, organizationId, role } = await requireActiveOrganization();
+  if (!["OWNER", "ADMIN", "MANAGER"].includes(role)) redirect("/app/products?error=not_allowed");
+
+  const productId = String(formData.get("product_id") || "");
+  const itemType = cleanItemType(formData.get("item_type"));
+  const code = String(formData.get("code") || "").trim();
+  const name = String(formData.get("name") || "").trim();
+  if (!productId || !code || !name) redirect(`/app/products/${productId}?error=required`);
+
+  const { error } = await supabase
+    .from("products")
+    .update({
+      item_type: itemType,
+      code,
+      sku: text(formData, "sku"),
+      barcode: text(formData, "barcode"),
+      name,
+      description: text(formData, "description"),
+      category_id: text(formData, "category_id"),
+      supplier_id: text(formData, "supplier_id"),
+      unit: String(formData.get("unit") || "UN").trim().toUpperCase(),
+      purchase_price: numberValue(formData, "purchase_price"),
+      sale_price: numberValue(formData, "sale_price"),
+      tax_rate: numberValue(formData, "tax_rate"),
+      track_stock: itemType === "PRODUCT" && formData.get("track_stock") === "on",
+      min_stock: numberValue(formData, "min_stock"),
+      notes: text(formData, "notes"),
+    })
+    .eq("id", productId)
+    .eq("organization_id", organizationId);
+
+  if (error) redirect(`/app/products/${productId}?error=${error.code === "23505" ? "duplicate_code" : "save"}`);
+  revalidatePath("/app/products");
+  revalidatePath(`/app/products/${productId}`);
+  redirect(`/app/products/${productId}?updated=1`);
+}
+
+export async function setProductStatusAction(formData: FormData) {
+  const { supabase, organizationId, role } = await requireActiveOrganization();
+  if (!["OWNER", "ADMIN", "MANAGER"].includes(role)) redirect("/app/products?error=not_allowed");
+
+  const productId = String(formData.get("product_id") || "");
+  const status = formData.get("status") === "ACTIVE" ? "ACTIVE" : "INACTIVE";
+  if (!productId) redirect("/app/products?error=required");
+
+  const { error } = await supabase.from("products").update({ status }).eq("id", productId).eq("organization_id", organizationId);
+  if (error) redirect(`/app/products/${productId}?error=status`);
+  revalidatePath("/app/products");
+  revalidatePath(`/app/products/${productId}`);
+  redirect(`/app/products/${productId}?status_changed=1`);
 }
