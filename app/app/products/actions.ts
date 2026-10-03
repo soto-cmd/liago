@@ -21,7 +21,7 @@ function cleanItemType(value: FormDataEntryValue | null) {
 }
 
 export async function createProductAction(formData: FormData) {
-  const { supabase, organizationId, userId } = await requireActiveOrganization();
+  const { supabase, organizationId } = await requireActiveOrganization();
   const itemType = cleanItemType(formData.get("item_type"));
   const code = String(formData.get("code") || "").trim();
   const name = String(formData.get("name") || "").trim();
@@ -70,15 +70,13 @@ export async function createProductAction(formData: FormData) {
       .maybeSingle();
 
     if (branch) {
-      const { error: movementError } = await supabase.from("inventory_movements").insert({
-        organization_id: organizationId,
-        branch_id: branch.id,
-        product_id: product.id,
-        movement_type: "OPENING",
-        quantity: openingStock,
-        unit_cost: numberValue(formData, "purchase_price"),
-        notes: "Stock inicial",
-        created_by: userId,
+      const { error: movementError } = await supabase.rpc("adjust_inventory", {
+        p_organization_id: organizationId,
+        p_branch_id: branch.id,
+        p_product_id: product.id,
+        p_direction: openingStock > 0 ? "IN" : "OUT",
+        p_quantity: Math.abs(openingStock),
+        p_notes: "Stock inicial",
       });
       if (movementError) redirect(`/app/products/${product.id}?error=opening_stock`);
     }
