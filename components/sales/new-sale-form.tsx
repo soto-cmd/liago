@@ -8,17 +8,31 @@ type Product = { id: string; code: string; name: string; sale_price: number; tax
 type Customer = { id: string; name: string; customer_code: string | null };
 type Branch = { id: string; name: string };
 type SaleItem = { product_id: string; code: string; name: string; quantity: number; unit_price: number; discount: number; tax_rate: number };
+type SaleType = "CASH" | "PARTIAL" | "CREDIT";
+
+function round2(value: number) {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
 
 export function NewSaleForm({ products, customers, branches }: { products: Product[]; customers: Customer[]; branches: Branch[] }) {
   const [items, setItems] = useState<SaleItem[]>([]);
   const [selected, setSelected] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [saleType, setSaleType] = useState<SaleType>("CASH");
+  const [customerId, setCustomerId] = useState("");
+  const [partialPaid, setPartialPaid] = useState("");
 
   const total = useMemo(() => items.reduce((sum, item) => {
-    const base = item.quantity * item.unit_price;
-    const taxable = Math.max(0, base - item.discount);
-    return sum + taxable + taxable * item.tax_rate / 100;
+    const subtotal = round2(item.quantity * item.unit_price);
+    const discount = Math.min(Math.max(item.discount, 0), subtotal);
+    const tax = round2((subtotal - discount) * item.tax_rate / 100);
+    return sum + subtotal - discount + tax;
   }, 0), [items]);
+
+  const needsCustomer = saleType !== "CASH";
+  const partialValue = Number(partialPaid) || 0;
+  const partialValid = saleType !== "PARTIAL" || (partialValue > 0 && partialValue < total);
+  const canSubmit = items.length > 0 && (!needsCustomer || Boolean(customerId)) && partialValid;
 
   function addItem() {
     const product = products.find((p) => p.id === selected);
@@ -41,29 +55,38 @@ export function NewSaleForm({ products, customers, branches }: { products: Produ
 
     <div className="grid gap-3 md:grid-cols-4">
       <select name="branch_id" required className="rounded-lg border px-3 py-2 text-sm"><option value="">Sucursal *</option>{branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</select>
-      <select name="customer_id" className="rounded-lg border px-3 py-2 text-sm"><option value="">Consumidor final</option>{customers.map((c) => <option key={c.id} value={c.id}>{c.customer_code ? `${c.customer_code} · ` : ""}{c.name}</option>)}</select>
-      <select name="sale_type" className="rounded-lg border px-3 py-2 text-sm"><option value="CASH">Contado</option><option value="PARTIAL">Pago parcial</option><option value="CREDIT">Crédito</option></select>
-      <input name="due_date" type="date" className="rounded-lg border px-3 py-2 text-sm" />
+      <select name="customer_id" value={customerId} onChange={(e) => setCustomerId(e.target.value)} required={needsCustomer} className="rounded-lg border px-3 py-2 text-sm">
+        <option value="">{needsCustomer ? "Seleccionar cliente *" : "Consumidor final"}</option>
+        {customers.map((c) => <option key={c.id} value={c.id}>{c.customer_code ? `${c.customer_code} · ` : ""}{c.name}</option>)}
+      </select>
+      <select name="sale_type" value={saleType} onChange={(e) => { setSaleType(e.target.value as SaleType); setPartialPaid(""); }} className="rounded-lg border px-3 py-2 text-sm">
+        <option value="CASH">Contado</option><option value="PARTIAL">Pago parcial</option><option value="CREDIT">Crédito</option>
+      </select>
+      {saleType === "CASH" ? <div className="rounded-lg border bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">Cobro total automático</div> : <input name="due_date" type="date" className="rounded-lg border px-3 py-2 text-sm" />}
     </div>
+
+    {needsCustomer && !customerId ? <div className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">Para una venta {saleType === "CREDIT" ? "a crédito" : "con pago parcial"} debés seleccionar un cliente.</div> : null}
 
     <div className="rounded-xl border bg-neutral-50 p-3">
       <div className="grid gap-2 md:grid-cols-[1fr_120px_auto]">
-        <select value={selected} onChange={(e) => setSelected(e.target.value)} className="rounded-lg border bg-white px-3 py-2 text-sm"><option value="">Seleccionar producto o servicio</option>{products.map((p) => <option key={p.id} value={p.id}>{p.code} · {p.name} · {Number(p.sale_price).toLocaleString("es-PY")}</option>)}</select>
+        <select value={selected} onChange={(e) => setSelected(e.target.value)} className="rounded-lg border bg-white px-3 py-2 text-sm"><option value="">Seleccionar producto o servicio</option>{products.map((p) => <option key={p.id} value={p.id}>{p.code} · {p.name} · Gs. {Number(p.sale_price).toLocaleString("es-PY")}</option>)}</select>
         <input type="number" min="0.001" step="0.001" value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} className="rounded-lg border bg-white px-3 py-2 text-sm" />
         <button type="button" onClick={addItem} className="flex items-center justify-center gap-2 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white"><Plus className="h-4 w-4" /> Agregar</button>
       </div>
     </div>
 
-    <div className="overflow-hidden rounded-xl border bg-white"><div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-neutral-50"><tr><th className="px-3 py-2">Código</th><th className="px-3 py-2">Producto</th><th className="px-3 py-2">Cantidad</th><th className="px-3 py-2">Precio</th><th className="px-3 py-2">Desc.</th><th className="px-3 py-2">Total</th><th /></tr></thead><tbody className="divide-y">
-      {items.length ? items.map((item, index) => { const base = item.quantity * item.unit_price; const taxable = Math.max(0, base-item.discount); const rowTotal = taxable + taxable*item.tax_rate/100; return <tr key={item.product_id}><td className="px-3 py-2 font-mono">{item.code}</td><td className="px-3 py-2 font-medium">{item.name}</td><td className="px-3 py-2"><input type="number" min="0.001" step="0.001" value={item.quantity} onChange={(e) => patch(index,"quantity",Number(e.target.value))} className="w-24 rounded border px-2 py-1" /></td><td className="px-3 py-2"><input type="number" min="0" step="0.01" value={item.unit_price} onChange={(e) => patch(index,"unit_price",Number(e.target.value))} className="w-28 rounded border px-2 py-1" /></td><td className="px-3 py-2"><input type="number" min="0" step="0.01" value={item.discount} onChange={(e) => patch(index,"discount",Number(e.target.value))} className="w-24 rounded border px-2 py-1" /></td><td className="px-3 py-2 font-medium">{rowTotal.toLocaleString("es-PY")}</td><td className="px-3 py-2"><button type="button" onClick={() => setItems((current) => current.filter((_,i) => i!==index))} className="rounded p-1 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></button></td></tr>; }) : <tr><td colSpan={7} className="px-3 py-8 text-center text-neutral-500">Agregá al menos un producto o servicio.</td></tr>}
+    <div className="overflow-hidden rounded-xl border bg-white"><div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-neutral-50"><tr><th className="px-3 py-2">Código</th><th className="px-3 py-2">Producto / servicio</th><th className="px-3 py-2">Cantidad</th><th className="px-3 py-2">Precio</th><th className="px-3 py-2">Desc.</th><th className="px-3 py-2">Total</th><th /></tr></thead><tbody className="divide-y">
+      {items.length ? items.map((item, index) => { const subtotal = round2(item.quantity * item.unit_price); const discount = Math.min(Math.max(item.discount,0),subtotal); const tax = round2((subtotal-discount)*item.tax_rate/100); const rowTotal = subtotal-discount+tax; return <tr key={item.product_id}><td className="px-3 py-2 font-mono">{item.code}</td><td className="px-3 py-2 font-medium">{item.name}</td><td className="px-3 py-2"><input type="number" min="0.001" step="0.001" value={item.quantity} onChange={(e) => patch(index,"quantity",Number(e.target.value))} className="w-24 rounded border px-2 py-1" /></td><td className="px-3 py-2"><input type="number" min="0" step="0.01" value={item.unit_price} onChange={(e) => patch(index,"unit_price",Number(e.target.value))} className="w-28 rounded border px-2 py-1" /></td><td className="px-3 py-2"><input type="number" min="0" step="0.01" value={item.discount} onChange={(e) => patch(index,"discount",Number(e.target.value))} className="w-24 rounded border px-2 py-1" /></td><td className="px-3 py-2 font-medium">Gs. {rowTotal.toLocaleString("es-PY")}</td><td className="px-3 py-2"><button type="button" onClick={() => setItems((current) => current.filter((_,i) => i!==index))} className="rounded p-1 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></button></td></tr>; }) : <tr><td colSpan={7} className="px-3 py-8 text-center text-neutral-500">Agregá al menos un producto o servicio.</td></tr>}
     </tbody></table></div></div>
 
     <div className="grid gap-3 md:grid-cols-4">
-      <input name="amount_paid" type="number" min="0" step="0.01" placeholder="Monto cobrado ahora" className="rounded-lg border px-3 py-2 text-sm" />
-      <select name="payment_method" className="rounded-lg border px-3 py-2 text-sm"><option value="CASH">Efectivo</option><option value="TRANSFER">Transferencia</option><option value="CARD">Tarjeta</option><option value="OTHER">Otro</option></select>
-      <input name="notes" placeholder="Observaciones" className="rounded-lg border px-3 py-2 text-sm md:col-span-2" />
+      {saleType === "PARTIAL" ? <input name="amount_paid" type="number" min="1" max={Math.max(total - 1, 1)} step="1" value={partialPaid} onChange={(e) => setPartialPaid(e.target.value)} required placeholder="Monto cobrado ahora *" className="rounded-lg border px-3 py-2 text-sm" /> : <input type="hidden" name="amount_paid" value={saleType === "CREDIT" ? "0" : total} />}
+      {saleType !== "CREDIT" ? <select name="payment_method" className="rounded-lg border px-3 py-2 text-sm"><option value="CASH">Efectivo</option><option value="TRANSFER">Transferencia</option><option value="CARD">Tarjeta</option><option value="OTHER">Otro</option></select> : <input type="hidden" name="payment_method" value="" />}
+      <input name="notes" placeholder="Observaciones" className={`rounded-lg border px-3 py-2 text-sm ${saleType === "CREDIT" ? "md:col-span-3" : "md:col-span-2"}`} />
     </div>
 
-    <div className="flex items-center justify-between rounded-xl border bg-neutral-50 p-4"><div><div className="text-sm text-neutral-500">Total estimado</div><div className="text-2xl font-semibold">{total.toLocaleString("es-PY")}</div></div><button disabled={!items.length} className="rounded-lg bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white disabled:opacity-40">Confirmar venta</button></div>
+    {saleType === "PARTIAL" && partialPaid && !partialValid ? <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">El pago parcial debe ser mayor a Gs. 0 y menor al total de la venta.</div> : null}
+
+    <div className="flex items-center justify-between rounded-xl border bg-neutral-50 p-4"><div><div className="text-sm text-neutral-500">Total</div><div className="text-2xl font-semibold">Gs. {total.toLocaleString("es-PY")}</div><div className="mt-1 text-xs text-neutral-500">{saleType === "CASH" ? "Se registrará como pagada en su totalidad." : saleType === "CREDIT" ? "El total quedará como saldo del cliente." : `Saldo estimado: Gs. ${Math.max(total-partialValue,0).toLocaleString("es-PY")}`}</div></div><button disabled={!canSubmit} className="rounded-lg bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white disabled:opacity-40">Confirmar venta</button></div>
   </form>;
 }
