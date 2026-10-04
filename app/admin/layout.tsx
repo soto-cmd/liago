@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Building2, LayoutDashboard, LifeBuoy, LogOut, ShieldCheck, Users, WalletCards } from "lucide-react";
+import { Building2, LayoutDashboard, LifeBuoy, Link2, LogOut, ShieldCheck, Users, WalletCards } from "lucide-react";
 import { requirePlatformAdmin } from "@/lib/admin/require-platform-admin";
 import { signOutAction } from "@/app/app/actions";
 
@@ -21,6 +21,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <Link href="/admin" className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-white/10"><LayoutDashboard className="h-4 w-4" /> Resumen</Link>
           <Link href="/admin/companies" className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-white/10"><Building2 className="h-4 w-4" /> Empresas</Link>
           <Link href="/admin/customers" className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-white/10"><Users className="h-4 w-4" /> Clientes</Link>
+          <Link href="/admin/invitations" className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-white/10"><Link2 className="h-4 w-4" /> Invitaciones</Link>
           <Link href="/admin/support" className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-white/10"><LifeBuoy className="h-4 w-4" /> Soporte</Link>
           <Link href="/admin/plans" className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-white/10"><WalletCards className="h-4 w-4" /> Planes</Link>
         </nav>
