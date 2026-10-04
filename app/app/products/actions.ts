@@ -16,54 +16,40 @@ function numberValue(formData: FormData, key: string, fallback = 0) {
   return Number.isFinite(value) ? value : fallback;
 }
 
-function cleanItemType(value: FormDataEntryValue | null) {
-  return value === "SERVICE" ? "SERVICE" : "PRODUCT";
-}
-
-function generatedServiceCode() {
-  return `SERV-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
-}
-
 export async function createProductAction(formData: FormData) {
   const { supabase, organizationId } = await requireActiveOrganization();
-  const itemType = cleanItemType(formData.get("item_type"));
-  const rawCode = String(formData.get("code") || "").trim();
-  const code = itemType === "SERVICE" && !rawCode ? generatedServiceCode() : rawCode;
+  const code = String(formData.get("code") || "").trim();
   const name = String(formData.get("name") || "").trim();
-
   if (!code || !name) redirect("/app/products?error=required");
 
-  const trackStock = itemType === "PRODUCT" && formData.get("track_stock") === "on";
+  const trackStock = formData.get("track_stock") === "on";
   const openingStock = trackStock ? numberValue(formData, "opening_stock", 0) : 0;
-  const isService = itemType === "SERVICE";
 
   const { data: product, error } = await supabase
     .from("products")
     .insert({
       organization_id: organizationId,
-      item_type: itemType,
+      item_type: "PRODUCT",
       code,
-      sku: isService ? null : text(formData, "sku"),
-      barcode: isService ? null : text(formData, "barcode"),
+      sku: text(formData, "sku"),
+      barcode: text(formData, "barcode"),
       name,
       description: text(formData, "description"),
       category_id: text(formData, "category_id"),
-      supplier_id: isService ? null : text(formData, "supplier_id"),
-      unit: isService ? "SERVICIO" : String(formData.get("unit") || "UN").trim().toUpperCase(),
+      supplier_id: text(formData, "supplier_id"),
+      unit: String(formData.get("unit") || "UN").trim().toUpperCase(),
       purchase_price: numberValue(formData, "purchase_price"),
       sale_price: numberValue(formData, "sale_price"),
       tax_rate: numberValue(formData, "tax_rate"),
       track_stock: trackStock,
-      min_stock: isService ? 0 : numberValue(formData, "min_stock"),
+      min_stock: numberValue(formData, "min_stock"),
       notes: text(formData, "notes"),
       status: "ACTIVE",
     })
     .select("id")
     .single();
 
-  if (error || !product) {
-    redirect(`/app/products?error=${error?.code === "23505" ? "duplicate_code" : "save"}`);
-  }
+  if (error || !product) redirect(`/app/products?error=${error?.code === "23505" ? "duplicate_code" : "save"}`);
 
   if (openingStock !== 0) {
     const { data: branch } = await supabase
@@ -98,35 +84,32 @@ export async function updateProductAction(formData: FormData) {
   if (!["OWNER", "ADMIN", "MANAGER"].includes(role)) redirect("/app/products?error=not_allowed");
 
   const productId = String(formData.get("product_id") || "");
-  const itemType = cleanItemType(formData.get("item_type"));
-  const rawCode = String(formData.get("code") || "").trim();
-  const code = itemType === "SERVICE" && !rawCode ? generatedServiceCode() : rawCode;
+  const code = String(formData.get("code") || "").trim();
   const name = String(formData.get("name") || "").trim();
   if (!productId || !code || !name) redirect(`/app/products/${productId}?error=required`);
-
-  const isService = itemType === "SERVICE";
 
   const { error } = await supabase
     .from("products")
     .update({
-      item_type: itemType,
+      item_type: "PRODUCT",
       code,
-      sku: isService ? null : text(formData, "sku"),
-      barcode: isService ? null : text(formData, "barcode"),
+      sku: text(formData, "sku"),
+      barcode: text(formData, "barcode"),
       name,
       description: text(formData, "description"),
       category_id: text(formData, "category_id"),
-      supplier_id: isService ? null : text(formData, "supplier_id"),
-      unit: isService ? "SERVICIO" : String(formData.get("unit") || "UN").trim().toUpperCase(),
+      supplier_id: text(formData, "supplier_id"),
+      unit: String(formData.get("unit") || "UN").trim().toUpperCase(),
       purchase_price: numberValue(formData, "purchase_price"),
       sale_price: numberValue(formData, "sale_price"),
       tax_rate: numberValue(formData, "tax_rate"),
-      track_stock: !isService && formData.get("track_stock") === "on",
-      min_stock: isService ? 0 : numberValue(formData, "min_stock"),
+      track_stock: formData.get("track_stock") === "on",
+      min_stock: numberValue(formData, "min_stock"),
       notes: text(formData, "notes"),
     })
     .eq("id", productId)
-    .eq("organization_id", organizationId);
+    .eq("organization_id", organizationId)
+    .eq("item_type", "PRODUCT");
 
   if (error) redirect(`/app/products/${productId}?error=${error.code === "23505" ? "duplicate_code" : "save"}`);
   revalidatePath("/app/products");
@@ -142,7 +125,7 @@ export async function setProductStatusAction(formData: FormData) {
   const status = formData.get("status") === "ACTIVE" ? "ACTIVE" : "INACTIVE";
   if (!productId) redirect("/app/products?error=required");
 
-  const { error } = await supabase.from("products").update({ status }).eq("id", productId).eq("organization_id", organizationId);
+  const { error } = await supabase.from("products").update({ status }).eq("id", productId).eq("organization_id", organizationId).eq("item_type", "PRODUCT");
   if (error) redirect(`/app/products/${productId}?error=status`);
   revalidatePath("/app/products");
   revalidatePath(`/app/products/${productId}`);
