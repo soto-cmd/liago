@@ -1,9 +1,18 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
+import { ConnectivityBanner } from "@/components/pwa/connectivity-banner";
 
 export const metadata: Metadata = {
   title: "LiaGo",
   description: "LiaGo — Tu negocio en movimiento",
+  manifest: "/manifest.webmanifest",
+  themeColor: "#2563eb",
+  appleWebApp: {
+    capable: true,
+    title: "LiaGo",
+    statusBarStyle: "default",
+  },
 };
 
 export default function RootLayout({
@@ -13,7 +22,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body>
+        <ServiceWorkerRegister />
+        <ConnectivityBanner />
+        {children}
+      </body>
     </html>
   );
 }
