@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import {
   BarChart3,
+  BookOpen,
   Boxes,
   Building2,
   HandCoins,
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 import { requireUser } from "@/lib/auth/require-user";
 import { SupportWidget } from "@/components/support/support-widget";
+import { FirstUseOnboarding } from "@/components/onboarding/first-use-onboarding";
 import { signOutAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -52,15 +54,22 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const cookieStore = await cookies();
   const organizationId = cookieStore.get("active_organization_id")?.value;
 
-  const [{ data: admin }, { data: subscription }] = await Promise.all([
+  await supabase.rpc("touch_user_activity", { p_path: "/app" });
+
+  const [{ data: admin }, { data: subscription }, { data: onboarding }, { data: redemption }] = await Promise.all([
     supabase.from("platform_admins").select("role,status").eq("user_id", userId).eq("status", "ACTIVE").maybeSingle(),
     organizationId
       ? supabase.from("subscriptions").select("plan").eq("organization_id", organizationId).in("status", ["TRIALING", "ACTIVE", "PAST_DUE"]).maybeSingle()
       : Promise.resolve({ data: null }),
+    supabase.from("onboarding_progress").select("current_step,completed,skipped").eq("user_id", userId).maybeSingle(),
+    supabase.from("invitation_redemptions").select("invitation_links(invitation_type)").eq("user_id", userId).order("redeemed_at", { ascending: false }).limit(1).maybeSingle(),
   ]);
 
   const isPlatformAdmin = Boolean(admin && ["SUPERADMIN", "ADMIN", "SUPPORT"].includes(admin.role));
   const plan = subscription?.plan || "FREE";
+  const invitation = Array.isArray(redemption?.invitation_links) ? redemption?.invitation_links[0] : redemption?.invitation_links;
+  const isTrial = invitation?.invitation_type === "TRIAL";
+  const showOnboarding = onboarding && !onboarding.completed && !onboarding.skipped;
 
   return (
     <div className="min-h-screen bg-[#f5f7fb] md:grid md:grid-cols-[272px_1fr]">
@@ -87,6 +96,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <div className="mb-6 border-t border-slate-100 pt-5">
             <div className="mb-2 px-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">Administración</div>
             <nav className="space-y-1">
+              <Link href="/app/getting-started" className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-blue-50 hover:text-blue-700"><BookOpen className="h-[18px] w-[18px] text-slate-400 group-hover:text-blue-600" /> Primeros pasos</Link>
               <Link href="/app/organizations" className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-blue-50 hover:text-blue-700"><Building2 className="h-[18px] w-[18px] text-slate-400 group-hover:text-blue-600" /> Mis empresas</Link>
               <Link href="/app/settings" className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-blue-50 hover:text-blue-700"><Settings className="h-[18px] w-[18px] text-slate-400 group-hover:text-blue-600" /> Configuración</Link>
               {isPlatformAdmin ? <Link href="/admin" className="group flex items-center gap-3 rounded-xl bg-slate-950 px-3 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800"><ShieldCheck className="h-[18px] w-[18px]" /> LiaGo Admin</Link> : null}
@@ -114,6 +124,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <main className="min-w-0">{children}</main>
         <SupportWidget />
       </div>
+      {showOnboarding ? <FirstUseOnboarding initialStep={onboarding.current_step || 1} isTrial={isTrial} /> : null}
     </div>
   );
 }
