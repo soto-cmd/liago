@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import {
   BarChart3,
   Boxes,
@@ -9,6 +10,7 @@ import {
   Package,
   ReceiptText,
   Settings,
+  ShieldCheck,
   ShoppingCart,
   Truck,
   Users,
@@ -44,7 +46,19 @@ const sections = [
 ] as const;
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  await requireUser();
+  const { supabase, userId } = await requireUser();
+  const cookieStore = await cookies();
+  const organizationId = cookieStore.get("active_organization_id")?.value;
+
+  const [{ data: admin }, { data: subscription }] = await Promise.all([
+    supabase.from("platform_admins").select("role,status").eq("user_id", userId).eq("status", "ACTIVE").maybeSingle(),
+    organizationId
+      ? supabase.from("subscriptions").select("plan").eq("organization_id", organizationId).in("status", ["TRIALING", "ACTIVE", "PAST_DUE"]).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+
+  const isPlatformAdmin = Boolean(admin && ["SUPERADMIN", "ADMIN", "SUPPORT"].includes(admin.role));
+  const plan = subscription?.plan || "FREE";
 
   return (
     <div className="min-h-screen bg-[#f5f7fb] md:grid md:grid-cols-[272px_1fr]">
@@ -83,6 +97,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
               <Link href="/app/settings" className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-blue-50 hover:text-blue-700">
                 <Settings className="h-[18px] w-[18px] text-slate-400 group-hover:text-blue-600" /> Configuración
               </Link>
+              {isPlatformAdmin ? (
+                <Link href="/admin" className="group flex items-center gap-3 rounded-xl bg-slate-950 px-3 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">
+                  <ShieldCheck className="h-[18px] w-[18px]" /> LiaGo Admin
+                </Link>
+              ) : null}
             </nav>
           </div>
         </div>
@@ -91,7 +110,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <div className="mb-3 rounded-2xl bg-slate-50 p-4">
             <div className="text-xs font-semibold text-slate-500">Plan actual</div>
             <div className="mt-1 flex items-center justify-between">
-              <span className="font-bold text-slate-900">FREE</span>
+              <span className="font-bold text-slate-900">{plan}</span>
               <span className="rounded-full bg-blue-100 px-2 py-1 text-[11px] font-bold text-blue-700">LiaGo</span>
             </div>
           </div>
@@ -112,6 +131,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </div>
           <div className="hidden text-sm text-slate-500 md:block">Gestión comercial simple, clara y segura.</div>
           <div className="flex items-center gap-2">
+            {isPlatformAdmin ? <Link href="/admin" className="liago-btn-secondary hidden lg:inline-flex"><ShieldCheck className="h-4 w-4" /> Admin</Link> : null}
             <Link href="/app/products/new" className="liago-btn-secondary hidden sm:inline-flex"><Package className="h-4 w-4" /> Producto</Link>
             <Link href="/app/sales" className="liago-btn-primary"><ShoppingCart className="h-4 w-4" /> Nueva venta</Link>
           </div>
