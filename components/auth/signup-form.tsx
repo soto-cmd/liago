@@ -30,7 +30,9 @@ export function SignupForm() {
     const supabase = createClient();
     const origin = window.location.origin;
     const params = new URLSearchParams(window.location.search);
-    const next = params.get("next") || "/onboarding";
+    const invite = params.get("invite");
+    const requestedNext = params.get("next");
+    const next = requestedNext || (invite ? `/onboarding?invite=${encodeURIComponent(invite)}` : "/onboarding");
 
     const { error } = await supabase.auth.signUp({
       email,
