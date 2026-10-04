@@ -49,6 +49,8 @@ export async function updateCompanyStatusAction(formData: FormData) {
   if (error) redirect("/admin/companies?error=status");
   revalidatePath("/admin");
   revalidatePath("/admin/companies");
+  revalidatePath("/app");
+  redirect("/admin/companies?updated=status");
 }
 
 export async function updateCompanyPlanAction(formData: FormData) {
@@ -66,6 +68,8 @@ export async function updateCompanyPlanAction(formData: FormData) {
   if (error) redirect("/admin/companies?error=plan");
   revalidatePath("/admin/companies");
   revalidatePath("/admin/plans");
+  revalidatePath("/app");
+  redirect("/admin/companies?updated=plan");
 }
 
 export async function createAdminCustomerAction(formData: FormData) {
@@ -93,5 +97,6 @@ export async function createAdminCustomerAction(formData: FormData) {
   if (error) redirect(`/admin/customers?organization_id=${organizationId}&error=save`);
   revalidatePath("/admin");
   revalidatePath("/admin/customers");
+  revalidatePath("/app/customers");
   redirect(`/admin/customers?organization_id=${organizationId}&created=1`);
 }
