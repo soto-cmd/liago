@@ -1,5 +1,6 @@
-import { Copy, Link2, Plus, ShieldCheck } from "lucide-react";
+import { Link2, Plus, ShieldCheck } from "lucide-react";
 import { requirePlatformAdmin } from "@/lib/admin/require-platform-admin";
+import { InvitationShareActions } from "@/components/admin/invitation-share-actions";
 import { createInvitationAction, revokeInvitationAction } from "./actions";
 
 function statusOf(item: { revoked_at: string | null; expires_at: string | null; used_count: number; max_uses: number }) {
@@ -57,7 +58,7 @@ export default async function AdminInvitationsPage({ searchParams }: { searchPar
         <div className="liago-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-5 py-4">Invitación</th><th className="px-5 py-4">Destino</th><th className="px-5 py-4">Uso</th><th className="px-5 py-4">Estado</th><th className="px-5 py-4">Enlace</th><th className="px-5 py-4"></th></tr></thead>
+              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-5 py-4">Invitación</th><th className="px-5 py-4">Destino</th><th className="px-5 py-4">Uso</th><th className="px-5 py-4">Estado</th><th className="px-5 py-4">Compartir</th><th className="px-5 py-4"></th></tr></thead>
               <tbody className="divide-y divide-slate-100">
                 {invites?.length ? invites.map((item) => {
                   const url = `${appUrl}/invite/${item.token}`;
@@ -69,7 +70,7 @@ export default async function AdminInvitationsPage({ searchParams }: { searchPar
                       <td className="px-5 py-4"><div>{item.email || "Cualquier email"}</div><div className="mt-1 text-xs text-slate-500">{orgName || "Nueva empresa de prueba"}</div></td>
                       <td className="px-5 py-4">{item.used_count}/{item.max_uses}<div className="mt-1 text-xs text-slate-500">Vence {item.expires_at ? new Date(item.expires_at).toLocaleDateString("es-PY") : "sin fecha"}</div></td>
                       <td className="px-5 py-4"><span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">{status}</span></td>
-                      <td className="px-5 py-4"><div className="flex max-w-md items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2"><code className="min-w-0 flex-1 truncate text-xs">{url}</code><Copy className="h-4 w-4 text-slate-400" /></div></td>
+                      <td className="px-5 py-4"><div className="mb-2 max-w-sm truncate rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-xs text-slate-500">{url}</div><InvitationShareActions url={url} label={item.label} /></td>
                       <td className="px-5 py-4">{canManage && status === "Activo" ? <form action={revokeInvitationAction}><input type="hidden" name="id" value={item.id} /><button className="text-xs font-bold text-rose-600">Revocar</button></form> : null}</td>
                     </tr>
                   );
