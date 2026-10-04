@@ -4,6 +4,14 @@
 
 :root {
   color-scheme: light;
+  --liago-bg: #f5f7fb;
+  --liago-surface: #ffffff;
+  --liago-border: #e5e9f2;
+  --liago-text: #111827;
+  --liago-muted: #64748b;
+  --liago-primary: #2563eb;
+  --liago-primary-dark: #1d4ed8;
+  --liago-navy: #132238;
 }
 
 html.dark {
@@ -16,8 +24,90 @@ body {
 }
 
 body {
-  background: #f7f7f8;
-  color: #171717;
+  margin: 0;
+  background: var(--liago-bg);
+  color: var(--liago-text);
+  font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: #dbeafe;
+  color: #1e3a8a;
+}
+
+.liago-card {
+  border: 1px solid var(--liago-border);
+  background: var(--liago-surface);
+  border-radius: 18px;
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.045);
+}
+
+.liago-input {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background: #fff;
+  padding: 0 14px;
+  color: #0f172a;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.liago-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+}
+
+textarea.liago-input {
+  min-height: 110px;
+  padding-top: 12px;
+  resize: vertical;
+}
+
+.liago-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  border-radius: 12px;
+  background: var(--liago-primary);
+  padding: 0 18px;
+  font-weight: 700;
+  color: white;
+  transition: background .15s ease, transform .15s ease;
+}
+
+.liago-btn-primary:hover {
+  background: var(--liago-primary-dark);
+  transform: translateY(-1px);
+}
+
+.liago-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background: white;
+  padding: 0 16px;
+  font-weight: 600;
+  color: #334155;
 }
 
 html.dark body {
