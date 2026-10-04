@@ -1,0 +1,22 @@
+# Checklist previo al único despliegue
+
+- [x] Separar trabajo en `develop-phase2`
+- [x] Productos con código, SKU y código de barras
+- [x] Clientes y proveedores
+- [x] Inventario por sucursal
+- [x] Ventas y detalle de venta
+- [x] Deudas, cobros y cuenta corriente
+- [x] Compras y detalle de compra
+- [x] Caja y gastos
+- [x] Dashboard y reportes base
+- [ ] Validar migraciones 002–005
+- [ ] Corregir permisos demasiado amplios
+- [ ] Implementar anulaciones transaccionales
+- [ ] Implementar comprobantes imprimibles
+- [ ] Mejorar navegación móvil
+- [ ] Revisar formularios de edición
+- [ ] Ejecutar advisors de Supabase
+- [ ] Validar build
+- [ ] Aplicar migraciones en orden
+- [ ] Prueba funcional end-to-end
+- [ ] Merge único a `main`

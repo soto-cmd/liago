@@ -1,48 +1,97 @@
 import Link from "next/link";
-import { Building2, LayoutDashboard, LogOut, Settings, Users } from "lucide-react";
+import {
+  BadgeDollarSign,
+  Boxes,
+  Building2,
+  ChartNoAxesCombined,
+  CircleDollarSign,
+  HandCoins,
+  LayoutDashboard,
+  LogOut,
+  PackagePlus,
+  ReceiptText,
+  Settings,
+  ShoppingCart,
+  Store,
+  Truck,
+  Users,
+  WalletCards,
+} from "lucide-react";
 import { requireUser } from "@/lib/auth/require-user";
 import { signOutAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+const navItems = [
+  ["/app", "Dashboard", LayoutDashboard],
+  ["/app/customers", "Clientes", Users],
+  ["/app/products", "Productos", PackagePlus],
+  ["/app/inventory", "Inventario", Boxes],
+  ["/app/sales", "Ventas", ShoppingCart],
+  ["/app/debts", "Deudas", HandCoins],
+  ["/app/payments", "Cobros", BadgeDollarSign],
+  ["/app/suppliers", "Proveedores", Truck],
+  ["/app/purchases", "Compras", Store],
+  ["/app/cash", "Caja", WalletCards],
+  ["/app/expenses", "Gastos", CircleDollarSign],
+  ["/app/reports", "Reportes", ChartNoAxesCombined],
+] as const;
+
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   await requireUser();
 
   return (
-    <div className="min-h-screen md:grid md:grid-cols-[240px_1fr]">
-      <aside className="hidden border-r border-neutral-200 bg-white p-4 md:flex md:flex-col">
-        <div className="mb-8 flex items-center gap-2 px-2 font-semibold">
-          <Building2 className="h-5 w-5" />
-          LiaGo
+    <div className="min-h-screen bg-neutral-50 md:grid md:grid-cols-[260px_1fr]">
+      <aside className="hidden max-h-screen overflow-y-auto border-r border-neutral-200 bg-white p-4 md:flex md:flex-col">
+        <div className="mb-6 flex items-center gap-2 px-2 font-semibold">
+          <Building2 className="h-5 w-5" /> LiaGo
         </div>
 
         <nav className="space-y-1 text-sm">
-          <Link className="flex items-center gap-2 rounded-lg bg-neutral-100 px-3 py-2 font-medium" href="/app">
-            <LayoutDashboard className="h-4 w-4" /> Dashboard
-          </Link>
+          {navItems.map(([href, label, Icon]) => (
+            <Link key={href} className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-neutral-100" href={href}>
+              <Icon className="h-4 w-4" /> {label}
+            </Link>
+          ))}
+          <div className="my-3 border-t" />
           <Link className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-neutral-100" href="/app/organizations">
             <Building2 className="h-4 w-4" /> Mis empresas
           </Link>
-          <span className="flex items-center gap-2 rounded-lg px-3 py-2 text-neutral-400">
-            <Users className="h-4 w-4" /> Clientes · Fase 2
-          </span>
           <Link className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-neutral-100" href="/app/settings">
             <Settings className="h-4 w-4" /> Configuración
           </Link>
         </nav>
 
-        <form action={signOutAction} className="mt-auto">
+        <div className="mt-6 rounded-xl border bg-neutral-50 p-3 text-xs text-neutral-600">
+          <div className="mb-1 flex items-center gap-2 font-medium text-neutral-900">
+            <ReceiptText className="h-4 w-4" /> Gestión comercial
+          </div>
+          Productos por código, ventas, cuenta corriente, caja e inventario en un solo lugar.
+        </div>
+
+        <form action={signOutAction} className="mt-auto pt-6">
           <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-neutral-100">
             <LogOut className="h-4 w-4" /> Cerrar sesión
           </button>
         </form>
       </aside>
 
-      <main className="min-w-0">{children}</main>
+      <div className="min-w-0">
+        <header className="sticky top-0 z-30 border-b bg-white/95 backdrop-blur md:hidden print:hidden">
+          <div className="flex items-center justify-between px-4 py-3">
+            <Link href="/app" className="flex items-center gap-2 font-semibold"><Building2 className="h-5 w-5" /> LiaGo</Link>
+            <div className="flex items-center gap-1">
+              <Link href="/app/organizations" aria-label="Mis empresas" className="rounded-lg p-2 hover:bg-neutral-100"><Building2 className="h-4 w-4" /></Link>
+              <Link href="/app/settings" aria-label="Configuración" className="rounded-lg p-2 hover:bg-neutral-100"><Settings className="h-4 w-4" /></Link>
+              <form action={signOutAction}><button aria-label="Cerrar sesión" className="rounded-lg p-2 hover:bg-neutral-100"><LogOut className="h-4 w-4" /></button></form>
+            </div>
+          </div>
+          <nav className="flex gap-1 overflow-x-auto px-3 pb-3 text-xs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {navItems.map(([href, label, Icon]) => <Link key={href} href={href} className="flex shrink-0 items-center gap-1.5 rounded-full border bg-white px-3 py-2"><Icon className="h-3.5 w-3.5" /> {label}</Link>)}
+          </nav>
+        </header>
+        <main className="min-w-0">{children}</main>
+      </div>
     </div>
   );
 }
