@@ -15,6 +15,7 @@ import {
   WalletCards,
 } from "lucide-react";
 import { requireUser } from "@/lib/auth/require-user";
+import { SupportWidget } from "@/components/support/support-widget";
 import { signOutAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -116,6 +117,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </div>
         </header>
         <main className="min-w-0">{children}</main>
+        <SupportWidget />
       </div>
     </div>
   );
