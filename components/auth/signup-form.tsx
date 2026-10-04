@@ -29,12 +29,14 @@ export function SignupForm() {
 
     const supabase = createClient();
     const origin = window.location.origin;
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get("next") || "/onboarding";
 
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${origin}/auth/callback?next=/onboarding`,
+        emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
       },
     });
 
@@ -63,13 +65,8 @@ export function SignupForm() {
         <Input name="confirmPassword" type="password" minLength={8} autoComplete="new-password" required />
       </div>
 
-      {error ? (
-        <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>
-      ) : null}
-
-      {message ? (
-        <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">{message}</p>
-      ) : null}
+      {error ? <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p> : null}
+      {message ? <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">{message}</p> : null}
 
       <Button className="w-full" disabled={loading}>
         {loading ? "Creando..." : "Crear cuenta"}
