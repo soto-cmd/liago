@@ -6,6 +6,7 @@ export default async function AdminCompaniesPage({ searchParams }: { searchParam
   const { supabase } = await requirePlatformAdmin();
   const params = await searchParams;
   const q = typeof params.q === "string" ? params.q.trim() : "";
+  const updated = typeof params.updated === "string" ? params.updated : "";
 
   let query = supabase
     .from("organizations")
@@ -50,6 +51,8 @@ export default async function AdminCompaniesPage({ searchParams }: { searchParam
         </div>
 
         {params.created ? <div className="mb-4 rounded-xl bg-emerald-50 p-3 text-sm font-medium text-emerald-700">Empresa creada correctamente.</div> : null}
+        {updated === "plan" ? <div className="mb-4 rounded-xl bg-emerald-50 p-3 text-sm font-medium text-emerald-700">Plan actualizado correctamente.</div> : null}
+        {updated === "status" ? <div className="mb-4 rounded-xl bg-emerald-50 p-3 text-sm font-medium text-emerald-700">Estado actualizado correctamente.</div> : null}
         {params.error ? <div className="mb-4 rounded-xl bg-rose-50 p-3 text-sm font-medium text-rose-700">No se pudo completar la operación.</div> : null}
 
         <form className="mb-5 flex max-w-xl gap-2">
