@@ -6,26 +6,14 @@ import { setProductStatusAction, updateProductAction } from "../actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function ProductDetailPage({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
+export default async function ProductDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { id } = await params;
   const messages = await searchParams;
   const { supabase, organizationId, role } = await requireActiveOrganization();
   const canManage = ["OWNER", "ADMIN", "MANAGER"].includes(role);
 
   const [{ data: product }, { data: categories }, { data: suppliers }, { data: balances }, { data: movements }] = await Promise.all([
-    supabase
-      .from("products")
-      .select("*")
-      .eq("id", id)
-      .eq("organization_id", organizationId)
-      .is("deleted_at", null)
-      .maybeSingle(),
+    supabase.from("products").select("*").eq("id", id).eq("organization_id", organizationId).eq("item_type", "PRODUCT").is("deleted_at", null).maybeSingle(),
     supabase.from("product_categories").select("id,name").eq("organization_id", organizationId).eq("status", "ACTIVE").is("deleted_at", null).order("name"),
     supabase.from("suppliers").select("id,name").eq("organization_id", organizationId).eq("status", "ACTIVE").is("deleted_at", null).order("name"),
     supabase.from("inventory_balances").select("quantity,updated_at,branches(id,name)").eq("organization_id", organizationId).eq("product_id", id).order("updated_at", { ascending: false }),
@@ -54,7 +42,6 @@ export default async function ProductDetailPage({
           <div className="mb-4 flex items-center gap-2"><Pencil className="h-4 w-4" /><h2 className="font-semibold">Datos del producto</h2></div>
           <form action={updateProductAction} className="grid gap-3 md:grid-cols-2">
             <input type="hidden" name="product_id" value={product.id} />
-            <select name="item_type" defaultValue={product.item_type} disabled={!canManage} className="rounded-lg border px-3 py-2 text-sm"><option value="PRODUCT">Producto</option><option value="SERVICE">Servicio</option></select>
             <input name="code" defaultValue={product.code} required disabled={!canManage} placeholder="Código interno" className="rounded-lg border px-3 py-2 text-sm" />
             <input name="sku" defaultValue={product.sku ?? ""} disabled={!canManage} placeholder="SKU" className="rounded-lg border px-3 py-2 text-sm" />
             <input name="barcode" defaultValue={product.barcode ?? ""} disabled={!canManage} placeholder="Código de barras" className="rounded-lg border px-3 py-2 text-sm" />
@@ -74,14 +61,8 @@ export default async function ProductDetailPage({
         </section>
 
         <section className="space-y-4">
-          <div className="rounded-xl border bg-white p-5 shadow-sm">
-            <div className="mb-4 flex items-center gap-2"><Boxes className="h-4 w-4" /><h2 className="font-semibold">Stock por sucursal</h2></div>
-            <div className="space-y-2">{balances?.length ? balances.map((row, index) => { const branch = row.branches as unknown as { name: string } | null; return <div key={index} className="flex items-center justify-between rounded-lg bg-neutral-50 px-3 py-2"><span className="text-sm">{branch?.name || "Sucursal"}</span><span className="font-semibold">{Number(row.quantity).toLocaleString("es-PY")} {product.unit}</span></div>; }) : <p className="text-sm text-neutral-500">Sin movimientos de stock todavía.</p>}</div>
-          </div>
-          <div className="rounded-xl border bg-white p-5 shadow-sm">
-            <h2 className="mb-4 font-semibold">Últimos movimientos</h2>
-            <div className="space-y-3">{movements?.length ? movements.map((m) => { const branch = m.branches as unknown as { name: string } | null; return <div key={m.id} className="border-b pb-3 text-sm last:border-0 last:pb-0"><div className="flex justify-between gap-3"><span className="font-medium">{m.movement_type}</span><span className={Number(m.quantity) >= 0 ? "text-emerald-700" : "text-red-700"}>{Number(m.quantity) > 0 ? "+" : ""}{Number(m.quantity).toLocaleString("es-PY")}</span></div><div className="mt-1 text-xs text-neutral-500">{branch?.name || ""} · {new Date(m.created_at).toLocaleString("es-PY")}{m.notes ? ` · ${m.notes}` : ""}</div></div>; }) : <p className="text-sm text-neutral-500">Sin movimientos.</p>}</div>
-          </div>
+          <div className="rounded-xl border bg-white p-5 shadow-sm"><div className="mb-4 flex items-center gap-2"><Boxes className="h-4 w-4" /><h2 className="font-semibold">Stock por sucursal</h2></div><div className="space-y-2">{balances?.length ? balances.map((row, index) => { const branch = row.branches as unknown as { name: string } | null; return <div key={index} className="flex items-center justify-between rounded-lg bg-neutral-50 px-3 py-2"><span className="text-sm">{branch?.name || "Sucursal"}</span><span className="font-semibold">{Number(row.quantity).toLocaleString("es-PY")} {product.unit}</span></div>; }) : <p className="text-sm text-neutral-500">Sin movimientos de stock todavía.</p>}</div></div>
+          <div className="rounded-xl border bg-white p-5 shadow-sm"><h2 className="mb-4 font-semibold">Últimos movimientos</h2><div className="space-y-3">{movements?.length ? movements.map((m) => { const branch = m.branches as unknown as { name: string } | null; return <div key={m.id} className="border-b pb-3 text-sm last:border-0 last:pb-0"><div className="flex justify-between gap-3"><span className="font-medium">{m.movement_type}</span><span className={Number(m.quantity) >= 0 ? "text-emerald-700" : "text-red-700"}>{Number(m.quantity) > 0 ? "+" : ""}{Number(m.quantity).toLocaleString("es-PY")}</span></div><div className="mt-1 text-xs text-neutral-500">{branch?.name || ""} · {new Date(m.created_at).toLocaleString("es-PY")}{m.notes ? ` · ${m.notes}` : ""}</div></div>; }) : <p className="text-sm text-neutral-500">Sin movimientos.</p>}</div></div>
         </section>
       </div>
     </div>
