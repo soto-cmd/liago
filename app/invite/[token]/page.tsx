@@ -3,11 +3,24 @@ import { CheckCircle2, Clock3, Link2, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { redeemInvitationAction } from "./actions";
 
+type InvitationView = {
+  invitation_type: "TRIAL" | "ORGANIZATION";
+  label: string | null;
+  email: string | null;
+  organization_name: string | null;
+  role: string | null;
+  plan: string;
+  trial_days: number;
+  available: boolean;
+  expires_at: string | null;
+};
+
 export default async function InvitePage({ params, searchParams }: { params: Promise<{ token: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { token } = await params;
   const query = await searchParams;
   const supabase = await createClient();
-  const { data: invite } = await supabase.rpc("get_invitation_link", { p_token: token }).maybeSingle();
+  const { data, error } = await supabase.rpc("get_invitation_link", { p_token: token });
+  const invite = (!error && Array.isArray(data) && data.length ? data[0] : null) as InvitationView | null;
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!invite) {
@@ -24,7 +37,7 @@ export default async function InvitePage({ params, searchParams }: { params: Pro
         <div className="mt-8"><div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700"><Link2 className="h-3.5 w-3.5" /> Invitación privada</div><h1 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-950">{invite.label || (invite.invitation_type === "TRIAL" ? "Probá LiaGo" : "Te invitaron a LiaGo")}</h1></div>
 
         <div className="mt-6 grid gap-3 rounded-2xl bg-slate-50 p-5 text-sm text-slate-600">
-          {invite.invitation_type === "TRIAL" ? <><div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-600" /> Plan {invite.plan} por {invite.trial_days} días</div><div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-600" /> Empresa de prueba privada y separada</div></> : <><div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-600" /> Empresa: {invite.organization_name}</div><div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-600" /> Rol asignado: {invite.role}</div></>}
+          {invite.invitation_type === "TRIAL" ? <><div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-600" /> Plan {invite.plan} por {invite.trial_days} días</div><div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-600" /> Empresa de prueba privada y separada</div></> : <><div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-600" /> Empresa: {invite.organization_name || "Empresa asignada"}</div><div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-600" /> Rol asignado: {invite.role || "VIEWER"}</div></>}
           {invite.expires_at ? <div className="flex items-center gap-2"><Clock3 className="h-4 w-4 text-slate-400" /> Válido hasta {new Date(invite.expires_at).toLocaleString("es-PY")}</div> : null}
         </div>
 
