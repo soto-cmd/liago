@@ -5,8 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 export const dynamic = "force-dynamic";
 
-export default async function OnboardingPage() {
+export default async function OnboardingPage({ searchParams }: { searchParams: Promise<{ invite?: string }> }) {
   const { supabase, userId } = await requireUser();
+  const params = await searchParams;
+  const invite = String(params.invite || "").trim();
+
+  if (invite) {
+    await supabase.rpc("redeem_invitation", { p_token: invite });
+  }
 
   const { data: existing } = await supabase
     .from("organization_members")
@@ -27,7 +33,7 @@ export default async function OnboardingPage() {
         <CardHeader>
           <CardTitle>Crear tu empresa</CardTitle>
           <CardDescription>
-            Este será el espacio privado donde vivirán los datos de tu negocio.
+            Este será el espacio privado donde vivirán los datos de tu negocio. Después LiaGo te guiará paso a paso por las funciones principales.
           </CardDescription>
         </CardHeader>
         <CardContent>
