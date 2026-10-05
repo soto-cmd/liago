@@ -72,8 +72,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const showOnboarding = onboarding && !onboarding.completed && !onboarding.skipped;
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb] md:grid md:grid-cols-[272px_1fr]">
-      <aside className="hidden min-h-screen border-r border-slate-200 bg-white md:flex md:flex-col">
+    <div className="min-h-screen bg-[#f5f7fb] md:grid md:grid-cols-[272px_1fr] print:block print:min-h-0 print:bg-white">
+      <aside className="hidden min-h-screen border-r border-slate-200 bg-white md:flex md:flex-col print:!hidden">
         <div className="flex h-20 items-center border-b border-slate-100 px-6">
           <Link href="/app" className="flex items-center gap-3">
             <div className="grid h-10 w-10 place-items-center rounded-2xl bg-blue-600 text-lg font-black text-white shadow-sm">L</div>
@@ -110,8 +110,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </div>
       </aside>
 
-      <div className="min-w-0">
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur md:px-8">
+      <div className="min-w-0 print:block print:min-w-0">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur md:px-8 print:!hidden">
           <div className="md:hidden"><Link href="/app" className="flex items-center gap-2 font-extrabold text-slate-900"><span className="grid h-8 w-8 place-items-center rounded-xl bg-blue-600 text-white">L</span> LiaGo</Link></div>
           <div className="hidden text-sm text-slate-500 md:block">Gestión comercial simple, clara y segura.</div>
           <div className="flex items-center gap-2">
@@ -121,10 +121,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <Link href="/app/sales" className="liago-btn-primary"><ShoppingCart className="h-4 w-4" /> Nueva venta</Link>
           </div>
         </header>
-        <main className="min-w-0">{children}</main>
-        <SupportWidget />
+        <main className="min-w-0 print:block print:min-w-0">{children}</main>
+        <div className="print:hidden"><SupportWidget /></div>
       </div>
-      {showOnboarding ? <FirstUseOnboarding initialStep={onboarding.current_step || 1} isTrial={isTrial} /> : null}
+      {showOnboarding ? <div className="print:hidden"><FirstUseOnboarding initialStep={onboarding.current_step || 1} isTrial={isTrial} /></div> : null}
     </div>
   );
 }

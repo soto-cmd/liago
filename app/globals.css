@@ -114,3 +114,23 @@ html.dark body {
   background: #09090b;
   color: #fafafa;
 }
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+
+  html,
+  body {
+    width: 100%;
+    min-height: 0;
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
