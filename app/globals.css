@@ -117,7 +117,7 @@ html.dark body {
 
 @media print {
   @page {
-    size: A5 portrait;
+    size: A4 portrait;
     margin: 10mm;
   }
 
