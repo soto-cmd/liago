@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Ban, ReceiptText } from "lucide-react";
+import { ArrowLeft, Ban, ReceiptText, Trash2 } from "lucide-react";
 import { requireActiveOrganization } from "@/lib/organizations/active-organization";
 import { PrintButton } from "@/components/common/print-button";
-import { cancelSaleAction, updateSaleDateAction } from "./actions";
+import { cancelSaleAction, deleteSaleAction, updateSaleDateAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +28,7 @@ export default async function SaleDetailPage({
   const messages = await searchParams;
   const { supabase, organizationId, role, organization } = await requireActiveOrganization();
   const canManage = ["OWNER", "ADMIN", "MANAGER"].includes(role);
+  const canDelete = ["OWNER", "ADMIN"].includes(role);
 
   const [{ data: sale }, { data: items }, { data: debt }, { data: payments }] = await Promise.all([
     supabase
@@ -61,6 +62,7 @@ export default async function SaleDetailPage({
           <PrintButton />
           {canManage ? <details className="rounded-lg border bg-white px-4 py-2 text-sm"><summary className="cursor-pointer list-none font-medium">Editar fecha</summary><form action={updateSaleDateAction} className="mt-3 flex gap-2"><input type="hidden" name="sale_id" value={sale.id} /><input name="sale_date" type="date" defaultValue={String(sale.sold_at).slice(0,10)} required className="rounded-lg border px-3 py-2 text-sm" /><button className="rounded-lg bg-slate-900 px-3 py-2 font-medium text-white">Guardar</button></form></details> : null}
           {canManage && sale.status === "CONFIRMED" ? <details className="rounded-lg border bg-white px-4 py-2 text-sm"><summary className="flex cursor-pointer list-none items-center gap-2 font-medium text-red-700"><Ban className="h-4 w-4" /> Anular venta</summary><form action={cancelSaleAction} className="mt-3 w-72 space-y-3"><input type="hidden" name="sale_id" value={sale.id} /><textarea name="reason" required placeholder="Motivo de anulación" className="w-full rounded-lg border px-3 py-2 text-sm" /><button className="w-full rounded-lg bg-red-700 px-3 py-2 font-medium text-white">Confirmar anulación</button></form></details> : null}
+          {canDelete && sale.status === "CANCELED" ? <details className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm"><summary className="flex cursor-pointer list-none items-center gap-2 font-medium text-red-800"><Trash2 className="h-4 w-4" /> Eliminar definitivamente</summary><form action={deleteSaleAction} className="mt-3 w-80 space-y-3"><input type="hidden" name="sale_id" value={sale.id} /><p className="text-xs leading-5 text-red-800">Esta acción elimina el comprobante y sus registros relacionados. No se puede deshacer.</p><input name="confirmation" required placeholder="Escribí ELIMINAR" className="w-full rounded-lg border border-red-200 bg-white px-3 py-2 text-sm" /><button className="w-full rounded-lg bg-red-700 px-3 py-2 font-medium text-white">Eliminar venta</button></form></details> : null}
         </div>
       </div>
 
