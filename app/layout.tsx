@@ -8,6 +8,10 @@ export const metadata: Metadata = {
   description: "LiaGo — Tu negocio en movimiento",
   manifest: "/manifest.webmanifest",
   themeColor: "#2563eb",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    shortcut: "/icon.svg",
+  },
   appleWebApp: {
     capable: true,
     title: "LiaGo",
