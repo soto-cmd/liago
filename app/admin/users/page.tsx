@@ -3,6 +3,19 @@ import { requirePlatformAdmin } from "@/lib/admin/require-platform-admin";
 
 export const dynamic = "force-dynamic";
 
+type UserActivityRow = {
+  user_id: string;
+  email: string | null;
+  full_name: string | null;
+  last_seen_at: string | null;
+  visit_count: number | null;
+  onboarding_completed: boolean | null;
+  onboarding_skipped: boolean | null;
+  invitation_label: string | null;
+  invitation_type: string | null;
+  redeemed_at: string | null;
+};
+
 function activityStatus(lastSeen: string | null) {
   if (!lastSeen) return { label: "Sin actividad", className: "bg-slate-100 text-slate-600" };
   const days = (Date.now() - new Date(lastSeen).getTime()) / 86_400_000;
@@ -17,7 +30,7 @@ export default async function AdminUsersPage() {
   const { data, error } = await supabase.rpc("platform_user_activity");
   if (error) throw new Error(error.message);
 
-  const users = data || [];
+  const users = (data ?? []) as UserActivityRow[];
   const activeToday = users.filter((u) => u.last_seen_at && Date.now() - new Date(u.last_seen_at).getTime() < 86_400_000).length;
   const activeWeek = users.filter((u) => u.last_seen_at && Date.now() - new Date(u.last_seen_at).getTime() < 7 * 86_400_000).length;
   const completed = users.filter((u) => u.onboarding_completed).length;
