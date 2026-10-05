@@ -32,6 +32,10 @@ Todo cambio debe diseñarse con el menor consumo razonable de builds, funciones,
 9. Los archivos deben tener límites de tamaño y, cuando aplique, compresión antes de subir a Storage.
 10. Mantener RLS activa en tablas expuestas y optimizar llamadas como `auth.uid()` usando `(select auth.uid())` dentro de políticas cuando corresponda.
 11. No eliminar índices solo porque figuren como no utilizados durante una etapa temprana del proyecto; revisar primero el patrón real de consultas.
+12. Toda función `SECURITY DEFINER` debe usar `search_path` explícito, validar al usuario y limitar la operación al rol/organización correspondiente.
+13. Ninguna función nueva debe quedar ejecutable automáticamente por `PUBLIC`, `anon` o `authenticated`; el acceso a RPC debe concederse explícitamente según necesidad.
+14. Los RPC administrativos nunca deben estar disponibles para `anon`.
+15. Una advertencia del Advisor no debe silenciarse reduciendo seguridad o eliminando índices sin revisar primero el uso real de la aplicación.
 
 ## Caché y modo offline
 
@@ -57,11 +61,23 @@ Todo cambio debe diseñarse con el menor consumo razonable de builds, funciones,
 - Reportes pesados: generar bajo demanda, no en cada apertura de pantalla.
 - Dashboards: preferir agregaciones SQL y una sola consulta por bloque de métricas.
 
-## Hallazgos de la revisión del 5 de octubre de 2026
+## Revisión aplicada el 5 de octubre de 2026
 
-- Supabase reportó una clave foránea sin índice de cobertura en `public.invitation_redemptions.organization_id`.
-- Supabase reportó varias políticas RLS que recalculan funciones `auth.*` por fila y pueden optimizarse con subconsultas `select`.
-- Existen políticas permisivas múltiples en algunas tablas; deben consolidarse con cuidado para mejorar rendimiento sin alterar permisos.
-- Los índices marcados como no utilizados no deben eliminarse todavía porque LiaGo está en etapa temprana y el volumen de uso real aún es bajo.
+Corregido:
+
+- Se agregó índice de cobertura para `public.invitation_redemptions.organization_id`.
+- Se optimizaron las políticas que evaluaban `auth.uid()` fila por fila.
+- Se consolidaron las políticas RLS permisivas duplicadas conservando los permisos funcionales existentes.
+- Se retiró acceso anónimo a `platform_user_activity`, `redeem_invitation` y `touch_user_activity`.
+- `get_invitation_link` conserva acceso anónimo de forma intencional para permitir validar una invitación antes de iniciar sesión; solo devuelve información limitada de la invitación.
+- Las funciones operativas `SECURITY DEFINER` verificadas conservan acceso para usuarios autenticados porque implementan operaciones transaccionales y validan permisos internamente por usuario, rol u organización.
+- Se revocaron privilegios automáticos de ejecución para futuras funciones de `PUBLIC`, `anon` y `authenticated`; los nuevos RPC deben recibir permisos explícitos.
+- Los Preview Deployments de Vercel permanecen desactivados.
+
+Observaciones aceptadas:
+
+- Los índices que Supabase marca como `unused` no se eliminan en esta etapa. LiaGo es un proyecto reciente y aún no existe suficiente tráfico para valorar su utilidad real.
+- La protección de contraseñas filtradas de Supabase no se activa mientras LiaGo permanezca en el plan gratuito, porque esa función requiere un plan de pago. Deben mantenerse requisitos de contraseña fuertes y controles de acceso adecuados.
+- Los Advisors pueden seguir señalando RPC `SECURITY DEFINER` deliberadamente expuestos a usuarios autenticados. Esto es aceptable únicamente cuando el RPC valida identidad y autorización internamente, como ocurre con las funciones revisadas actualmente.
 
 Estas reglas deben revisarse antes de introducir cualquier función que implique sincronización continua, Realtime, cron, cargas grandes, reportes masivos o nuevos servicios externos.
