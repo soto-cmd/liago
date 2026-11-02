@@ -11,7 +11,7 @@ export type StoreItemPublic = {
   id:string; title:string; code:string; description:string|null;
   category_name:string|null; image_url:string|null; price:number;
   compare_at_price:number|null; currency:string;
-  images:string[];item_condition:"NEW"|"USED";listing_status:"AVAILABLE"|"RESERVED"|"SOLD";
+  images:string[];item_condition:"NEW"|"USED";listing_status:"AVAILABLE"|"RESERVED"|"SOLD";promo_code:string|null;
 };
 function publicClient() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
@@ -27,7 +27,7 @@ export async function fetchPublicStore(slug:string):Promise<StorePublic|null> {
 }
 export async function fetchPublicItems(organizationId:string):Promise<StoreItemPublic[]> {
   const {data,error}=await publicClient().from("online_store_items")
-    .select("id,title,code,description,category_name,image_url,price,compare_at_price,currency,images,item_condition,listing_status")
+    .select("id,title,code,description,category_name,image_url,price,compare_at_price,currency,images,item_condition,listing_status,promo_code")
     .eq("organization_id",organizationId).eq("is_published",true)
     .order("position",{ascending:true}).order("updated_at",{ascending:false}).limit(400);
   if(error)return[];
@@ -42,7 +42,7 @@ export function whatsappUrl(phone:string|null,title:string,code:string){
 export async function fetchPublicItem(organizationId:string,id:string):Promise<StoreItemPublic|null> {
   if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
   const {data,error}=await publicClient().from("online_store_items")
-    .select("id,title,code,description,category_name,image_url,price,compare_at_price,currency,images,item_condition,listing_status")
+    .select("id,title,code,description,category_name,image_url,price,compare_at_price,currency,images,item_condition,listing_status,promo_code")
     .eq("id",id).eq("organization_id",organizationId).eq("is_published",true).maybeSingle();
   return error||!data?null:{...data,price:Number(data.price),compare_at_price:data.compare_at_price===null?null:Number(data.compare_at_price),images:Array.isArray(data.images)?data.images:[]};
 }
