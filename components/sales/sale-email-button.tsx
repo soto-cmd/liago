@@ -12,10 +12,11 @@ type SaleEmailButtonProps = {
   amountPaid: string;
   balance: string;
   proforma: boolean;
+  nextPaymentDate: string | null;
 };
 
 export function SaleEmailButton({
-  customerEmail, customerName, companyName, saleNumber, saleDate, total, amountPaid, balance, proforma,
+  customerEmail, customerName, companyName, saleNumber, saleDate, total, amountPaid, balance, proforma, nextPaymentDate,
 }: SaleEmailButtonProps) {
   const documentLabel = proforma ? "Factura proforma (no tributaria)" : "Comprobante interno de venta";
   const subject = `${documentLabel} #${saleNumber} · ${companyName}`;
@@ -28,6 +29,7 @@ export function SaleEmailButton({
     `Total: ${total}`,
     `Abonado: ${amountPaid}`,
     `Saldo pendiente: ${balance}`,
+    ...(nextPaymentDate ? [`Próxima fecha de pago: ${nextPaymentDate}`] : []),
     "",
     "Adjunto el documento correspondiente para tu referencia.",
     proforma ? "Este documento es una proforma y no constituye una factura tributaria." : "Este documento es un comprobante interno y no constituye una factura tributaria.",

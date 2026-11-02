@@ -9,6 +9,13 @@ function text(formData: FormData, key: string) {
   return value || null;
 }
 
+function paymentDay(formData: FormData) {
+  const raw = String(formData.get("next_payment_day") || "").trim();
+  if (!raw) return null;
+  const value = Number(raw);
+  return Number.isInteger(value) && value >= 1 && value <= 31 ? value : null;
+}
+
 function creditLimit(formData: FormData) {
   const raw = String(formData.get("credit_limit") || "0").replace(",", ".");
   return Math.max(0, Number(raw) || 0);
@@ -31,6 +38,7 @@ export async function createCustomerAction(formData: FormData) {
     address: text(formData, "address"),
     city: text(formData, "city"),
     credit_limit: creditLimit(formData),
+    next_payment_day: paymentDay(formData),
     notes: text(formData, "notes"),
   }).select("id").single();
 
