@@ -43,6 +43,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
               <input name="phone" placeholder="Teléfono" className="liago-input" />
               <input name="email" type="email" placeholder="Email" className="liago-input" />
               <input name="city" placeholder="Ciudad" className="liago-input" />
+              <input name="next_payment_day" type="number" min="1" max="31" placeholder="Día de pago mensual (opcional)" className="liago-input" />
               <input name="credit_limit" type="number" min="0" step="1" placeholder="Límite de crédito" className="liago-input" />
               <input name="address" placeholder="Dirección" className="liago-input md:col-span-2" />
               <textarea name="notes" placeholder="Notas internas" className="liago-input md:col-span-2" />
