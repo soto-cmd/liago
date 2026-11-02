@@ -64,7 +64,7 @@ export default async function CustomerDetailPage({
       {messages.created ? <div className="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">Cliente creado correctamente.</div> : null}
       {messages.status_changed ? <div role="status" className="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">Estado actualizado correctamente.</div> : null}
       {messages.updated ? <div className="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">Cambios guardados.</div> : null}
-      {messages.error ? <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">No se pudo completar la operación.</div> : null}
+      {messages.error ? <div role="alert" className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{messages.error === "has_history" ? "Este contacto tiene ventas o movimientos registrados. Para conservar su historial, cambiale el estado a Inactivo en lugar de eliminarlo." : "No se pudo completar la operación."}</div> : null}
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border bg-white p-4 shadow-sm"><p className="text-sm text-neutral-500">Saldo pendiente</p><p className="mt-2 text-2xl font-semibold">{pending.toLocaleString("es-PY")}</p></div>
