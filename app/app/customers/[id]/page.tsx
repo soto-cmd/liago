@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, BadgeDollarSign, History, Pencil } from "lucide-react";
+import { ArrowLeft, BadgeDollarSign, History, Pencil, Trash2 } from "lucide-react";
 import { requireActiveOrganization } from "@/lib/organizations/active-organization";
-import { setCustomerStatusAction, updateCustomerAction } from "../actions";
+import { archiveCustomerAction, setCustomerStatusAction, updateCustomerAction } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +18,7 @@ export default async function CustomerDetailPage({
   const { supabase, organizationId, role } = await requireActiveOrganization();
   const canEdit = ["OWNER", "ADMIN", "MANAGER", "SELLER", "CASHIER"].includes(role);
   const canManageStatus = ["OWNER", "ADMIN", "MANAGER"].includes(role);
+  const canArchive = ["OWNER", "ADMIN"].includes(role);
 
   const [{ data: customer }, { data: debts }, { data: entries }, { data: sales }] = await Promise.all([
     supabase.from("customers").select("*").eq("id", id).eq("organization_id", organizationId).is("deleted_at", null).maybeSingle(),
@@ -38,10 +39,30 @@ export default async function CustomerDetailPage({
           <div className="flex flex-wrap items-center gap-3"><h1 className="text-2xl font-semibold">{customer.name}</h1><span className="rounded-full border bg-white px-2.5 py-1 text-xs font-medium">{customer.status}</span></div>
           <p className="mt-1 text-sm text-neutral-500">{customer.customer_code ? `Código ${customer.customer_code}` : "Sin código"}{customer.tax_id ? ` · ${customer.tax_id}` : ""}</p>
         </div>
-        {canManageStatus ? <div className="flex gap-2"><form action={setCustomerStatusAction}><input type="hidden" name="customer_id" value={customer.id} /><input type="hidden" name="status" value={customer.status === "ACTIVE" ? "BLOCKED" : "ACTIVE"} /><button className="rounded-lg border bg-white px-4 py-2 text-sm font-medium">{customer.status === "ACTIVE" ? "Bloquear" : "Activar"}</button></form></div> : null}
+        <div className="flex flex-wrap items-start gap-2">
+          {canManageStatus ? <form action={setCustomerStatusAction} className="flex items-center gap-2">
+            <input type="hidden" name="customer_id" value={customer.id} />
+            <select name="status" aria-label="Estado del contacto" defaultValue={customer.status} className="rounded-lg border bg-white px-3 py-2 text-sm">
+              <option value="ACTIVE">Activo</option>
+              <option value="INACTIVE">Inactivo</option>
+              <option value="BLOCKED">Bloqueado</option>
+            </select>
+            <button type="submit" className="rounded-lg border bg-white px-4 py-2 text-sm font-semibold hover:bg-blue-50">Guardar estado</button>
+          </form> : null}
+          {canArchive ? <details className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm">
+            <summary className="flex cursor-pointer items-center gap-2 font-semibold text-red-700"><Trash2 className="h-4 w-4" /> Eliminar contacto</summary>
+            <form action={archiveCustomerAction} className="mt-3 max-w-72 space-y-2">
+              <input type="hidden" name="customer_id" value={customer.id} />
+              <p className="text-xs leading-relaxed text-red-800">El contacto se ocultará de la lista. Sus ventas, pagos y registros anteriores se conservarán. Escribí ELIMINAR para confirmar.</p>
+              <input name="confirmation" required autoComplete="off" placeholder="ELIMINAR" className="w-full rounded-lg border border-red-200 bg-white px-3 py-2" />
+              <button type="submit" className="w-full rounded-lg bg-red-700 px-3 py-2 font-semibold text-white hover:bg-red-800">Confirmar eliminación</button>
+            </form>
+          </details> : null}
+        </div>
       </div>
 
       {messages.created ? <div className="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">Cliente creado correctamente.</div> : null}
+      {messages.status_changed ? <div role="status" className="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">Estado actualizado correctamente.</div> : null}
       {messages.updated ? <div className="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">Cambios guardados.</div> : null}
       {messages.error ? <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">No se pudo completar la operación.</div> : null}
 
