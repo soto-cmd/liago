@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ExternalLink, Globe2, PackagePlus, ShoppingBag } from "lucide-react";
 import { requireActiveOrganization } from "@/lib/organizations/active-organization";
+import {StoreMediaFields} from "@/components/online-store/store-media-fields";
 import { publishOnlineStoreProductAction, removeOnlineStoreProductAction, saveOnlineStoreAction, updateOnlineStoreProductAction } from "./actions";
 
 export const dynamic="force-dynamic";
@@ -76,11 +77,12 @@ export default async function OnlineStoreAdmin({searchParams}:{searchParams:Prom
        <label className="text-xs font-semibold">Categoría<input name="category_name" defaultValue={item.category_name||"Otros"} maxLength={80} className={field}/></label>
        <label className="text-xs font-semibold">Precio de venta (G.)<input name="price" defaultValue={item.price} type="number" min={0} step="1" required className={field}/></label>
        <label className="text-xs font-semibold">Precio anterior (G., opcional)<input name="compare_at_price" defaultValue={item.compare_at_price||""} type="number" min={0} step="1" className={field}/></label>
-       <label className="text-xs font-semibold sm:col-span-2">Imagen (URL https://)<input name="image_url" type="url" defaultValue={item.image_url||""} className={field}/></label>
+       <StoreMediaFields organizationId={organizationId} itemId={item.id} initialMain={item.image_url||""} initialExtra={Array.isArray(item.images)?item.images.filter((u:string)=>u!==item.image_url).join("\n"):""}/>
+
        <label className="text-xs font-semibold sm:col-span-2">Descripción<textarea name="description" rows={3} defaultValue={item.description||""} className={field}/></label>
        <label className="text-xs font-semibold">Condición<select name="item_condition" defaultValue={item.item_condition||"NEW"} className={field}><option value="NEW">Nuevo</option><option value="USED">Usado</option></select></label>
        <label className="text-xs font-semibold">Disponibilidad<select name="listing_status" defaultValue={item.listing_status||"AVAILABLE"} className={field}><option value="AVAILABLE">Disponible</option><option value="RESERVED">Reservado</option><option value="SOLD">Vendido</option></select></label>
-       <label className="text-xs font-semibold sm:col-span-2">Fotografías adicionales (una URL por línea, hasta 5)<textarea name="images" rows={4} defaultValue={Array.isArray(item.images)?item.images.filter((u:string)=>u!==item.image_url).join("\n"):""} placeholder={"https://.../foto2.jpg\\nhttps://.../foto3.jpg"} className={field}/><span className="mt-1 block text-[11px] text-slate-500">Hasta 6 imágenes contando la principal. Elegí enlaces públicos seguros.</span></label>
+
        <label className="flex items-center gap-2 rounded-lg bg-blue-50 p-3 text-sm font-semibold sm:col-span-2"><input type="checkbox" name="is_published" defaultChecked={item.is_published}/> Mostrar en la tienda pública</label>
        <button className="liago-btn-primary sm:col-span-2">Guardar artículo</button>
       </form>
