@@ -12,13 +12,13 @@ export default async function PublicStorePage({params}:{params:Promise<{slug:str
  const items=await fetchPublicItems(store.organization_id);
  const whatsapp=(store.whatsapp||"").replace(/\D/g,"");
  return <main className="min-h-screen bg-[#f6f7fb] text-slate-900">
-  <header className="border-b border-slate-200 bg-white">
-   <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 md:px-8">
-    <div className="flex min-w-0 items-center gap-3">
-     {store.logo_url?<img src={store.logo_url} alt="" className="h-11 w-11 rounded-xl border object-contain"/>:<div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 font-black text-white">{store.title.slice(0,1).toUpperCase()}</div>}
-     <div className="min-w-0"><div className="truncate text-lg font-extrabold">{store.title}</div><p className="text-xs text-slate-500">Tienda online en Liago</p></div>
+  <header className="border-b border-slate-100 bg-white">
+   <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 md:px-8 md:py-2.5">
+    <div className="flex min-w-0 items-center gap-2.5">
+     {store.logo_url?<img src={store.logo_url} alt="" className="h-9 w-9 rounded-xl border object-contain"/>:<div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 font-black text-white">{store.title.slice(0,1).toUpperCase()}</div>}
+     <div className="min-w-0"><div className="truncate text-base font-extrabold">{store.title}</div><p className="text-[11px] text-slate-500">Tienda online en Liago</p></div>
     </div>
-    <a href="#catalogo" className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white">Ver catálogo</a>
+    <a href="#catalogo" className="rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white">Ver catálogo</a>
    </div>
   </header>
   <section className="relative overflow-hidden bg-slate-900 text-white">
