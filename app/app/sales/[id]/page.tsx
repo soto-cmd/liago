@@ -44,7 +44,7 @@ export default async function SaleDetailPage({
   ]);
 
   if (!sale) notFound();
-  const customer = sale.customers as unknown as { id:string; name:string; tax_id:string|null; phone:string|null; whatsapp:string|null; address:string|null } | null;
+  const customer = sale.customers as unknown as { id:string; name:string; tax_id:string|null; phone:string|null; whatsapp:string|null; email:string|null; address:string|null } | null;
   const branch = sale.branches as unknown as { id:string; name:string; address:string|null } | null;
   const currency = organization.currency || "PYG";
   const isAMStudio = organization.name.toLowerCase().includes("a&m estudio fotografico");
