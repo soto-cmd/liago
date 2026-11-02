@@ -1,9 +1,11 @@
-import { Building2, Plus, Search, UserRound, Users } from "lucide-react";
+import Link from "next/link";
+import { Building2, Pencil, Plus, Search, UserRound, Users } from "lucide-react";
 import { requireActiveOrganization } from "@/lib/organizations/active-organization";
 import { createCustomerAction } from "./actions";
 
 export default async function CustomersPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const { supabase, organizationId } = await requireActiveOrganization();
+  const { supabase, organizationId, role } = await requireActiveOrganization();
+  const canEdit = ["OWNER", "ADMIN", "MANAGER", "SELLER", "CASHIER"].includes(role);
   const params = await searchParams;
   const q = typeof params.q === "string" ? params.q.trim() : "";
   const category = typeof params.category === "string" && ["students", "casual", "recurring"].includes(params.category) ? params.category : "all";
@@ -49,6 +51,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
           </details>
         </div>
 
+        {params.archived ? <div role="status" className="mb-4 rounded-xl bg-emerald-50 p-3 text-sm font-semibold text-emerald-700">Contacto eliminado de la lista. Se conservó su historial.</div> : null}
         {params.created ? <div className="mb-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">Cliente guardado correctamente.</div> : null}
         {params.error ? <div className="mb-4 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-semibold text-red-700">No se pudo guardar el cliente.</div> : null}
 
@@ -64,7 +67,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
           <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4"><div><div className="font-bold text-slate-950">Base de clientes</div><div className="mt-1 text-xs text-slate-500">{visibleCustomers?.length ?? 0} registros visibles · {activeStudentCount} alumnos activos</div></div></div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[850px] text-left text-sm">
-              <thead className="bg-slate-50/80 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-5 py-4">Cliente</th><th className="px-5 py-4">Código</th><th className="px-5 py-4">Documento</th><th className="px-5 py-4">Contacto</th><th className="px-5 py-4">Crédito</th><th className="px-5 py-4">Estado</th></tr></thead>
+              <thead className="bg-slate-50/80 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-5 py-4">Cliente</th><th className="px-5 py-4">Código</th><th className="px-5 py-4">Documento</th><th className="px-5 py-4">Contacto</th><th className="px-5 py-4">Crédito</th><th className="px-5 py-4">Estado</th><th className="px-5 py-4">Acciones</th></tr></thead>
               <tbody className="divide-y divide-slate-100">
                 {visibleCustomers?.length ? visibleCustomers.map((customer) => (
                   <tr key={customer.id} className="hover:bg-slate-50/70">
@@ -73,9 +76,10 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
                     <td className="px-5 py-4 text-slate-600">{customer.tax_id || "—"}</td>
                     <td className="px-5 py-4"><div className="font-medium text-slate-700">{customer.whatsapp || customer.phone || "—"}</div><div className="text-xs text-slate-400">{customer.email || ""}</div></td>
                     <td className="px-5 py-4 font-semibold text-slate-700">Gs. {Number(customer.credit_limit).toLocaleString("es-PY")}</td>
-                    <td className="px-5 py-4"><span className={`rounded-full px-2.5 py-1 text-xs font-bold ${customer.status === "ACTIVE" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>{customer.status === "ACTIVE" ? "Activo" : customer.status}</span></td>
+                    <td className="px-5 py-4"><span className={`rounded-full px-2.5 py-1 text-xs font-bold ${customer.status === "ACTIVE" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>{customer.status === "ACTIVE" ? "Activo" : customer.status === "INACTIVE" ? "Inactivo" : "Bloqueado"}</span></td>
+                    <td className="px-5 py-4"><Link href={`/app/customers/${customer.id}`} className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 hover:bg-blue-100">{canEdit ? <Pencil className="h-3.5 w-3.5" /> : null}{canEdit ? "Editar / gestionar" : "Ver ficha"}</Link></td>
                   </tr>
-                )) : <tr><td colSpan={6} className="px-5 py-16 text-center"><Users className="mx-auto h-10 w-10 text-slate-300" /><div className="mt-3 font-bold text-slate-700">Todavía no hay clientes</div><div className="mt-1 text-sm text-slate-400">Agregá el primero para comenzar.</div></td></tr>}
+                )) : <tr><td colSpan={7} className="px-5 py-16 text-center"><Users className="mx-auto h-10 w-10 text-slate-300" /><div className="mt-3 font-bold text-slate-700">Todavía no hay clientes</div><div className="mt-1 text-sm text-slate-400">Agregá el primero para comenzar.</div></td></tr>}
               </tbody>
             </table>
           </div>
