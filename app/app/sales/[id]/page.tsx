@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Ban, FileText, ReceiptText, Trash2 } from "lucide-react";
 import { requireActiveOrganization } from "@/lib/organizations/active-organization";
 import { PrintButton } from "@/components/common/print-button";
+import { nextMonthlyPaymentDate } from "@/lib/billing/next-payment-date";
 import { SaleEmailButton } from "@/components/sales/sale-email-button";
 import { cancelSaleAction, deleteSaleAction, updateSaleDateAction } from "./actions";
 
@@ -34,17 +35,17 @@ export default async function SaleDetailPage({
   const [{ data: sale }, { data: items }, { data: debt }, { data: payments }] = await Promise.all([
     supabase
       .from("sales")
-      .select("id,sale_number,sale_type,status,payment_status,sold_at,due_date,subtotal,discount_total,tax_total,total,amount_paid,balance_due,payment_method,reference,notes,customers(id,name,tax_id,phone,whatsapp,email,address),branches(id,name,address)")
+      .select("id,sale_number,sale_type,status,payment_status,sold_at,due_date,subtotal,discount_total,tax_total,total,amount_paid,balance_due,payment_method,reference,notes,customers(id,name,tax_id,phone,whatsapp,email,address,next_payment_day),branches(id,name,address)")
       .eq("id", id)
       .eq("organization_id", organizationId)
       .maybeSingle(),
-    supabase.from("sale_items").select("id,item_code,description,quantity,unit_price,discount,tax_rate,line_subtotal,line_tax,line_total,products(unit)").eq("organization_id", organizationId).eq("sale_id", id),
+    supabase.from("sale_items").select("id,item_code,description,quantity,unit_price,discount,tax_rate,line_subtotal,line_tax,line_total,products(unit,service_recurring_monthly)").eq("organization_id", organizationId).eq("sale_id", id),
     supabase.from("debts").select("id,original_amount,balance,status,due_date").eq("organization_id", organizationId).eq("sale_id", id).maybeSingle(),
     supabase.from("payments").select("id,payment_number,paid_at,amount,payment_method,status,reference").eq("organization_id", organizationId).eq("sale_id", id).order("paid_at", { ascending: true }),
   ]);
 
   if (!sale) notFound();
-  const customer = sale.customers as unknown as { id:string; name:string; tax_id:string|null; phone:string|null; whatsapp:string|null; email:string|null; address:string|null } | null;
+  const customer = sale.customers as unknown as { id:string; name:string; tax_id:string|null; phone:string|null; whatsapp:string|null; email:string|null; address:string|null; next_payment_day:number|null } | null;
   const branch = sale.branches as unknown as { id:string; name:string; address:string|null } | null;
   const currency = organization.currency || "PYG";
   const isAMStudio = organization.name.toLowerCase().includes("a&m estudio fotografico");
@@ -53,6 +54,13 @@ export default async function SaleDetailPage({
     return (product?.unit || "").toUpperCase() === "SERVICIO";
   });
   const issuer = organization.name.toLowerCase().includes("sototech academy") || ((items ?? []).some(item => /inform[aá]tica/i.test(item.description)) && organization.name.toLowerCase().includes("adrián soto")) ? "SotoTech Academy" : organization.name;
+  const recurringMonthly = (items ?? []).some((item) => {
+    const product = item.products as unknown as { service_recurring_monthly?: boolean } | null;
+    return product?.service_recurring_monthly === true;
+  });
+  const nextPaymentDate = recurringMonthly && customer?.next_payment_day
+    ? nextMonthlyPaymentDate(sale.sold_at, customer.next_payment_day)
+    : null;
   const proforma = messages.document === "proforma" && sale.status !== "CANCELED";
   const receiptTitle = proforma ? "Factura proforma · No tributaria" : isServiceReceipt ? "Comprobante de servicio" : "Comprobante de venta";
   const saleDate = new Date(sale.sold_at).toLocaleDateString("es-PY", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -64,7 +72,7 @@ export default async function SaleDetailPage({
         <div className="flex flex-wrap gap-2">
           <PrintButton />
           {sale.status !== "CANCELED" ? <Link href={proforma ? "/app/sales/" + sale.id : "/app/sales/" + sale.id + "?document=proforma"} className="inline-flex items-center gap-2 rounded-lg border bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50"><FileText className="h-4 w-4" /> {proforma ? "Ver comprobante" : "Generar factura"}</Link> : null}
-          {sale.status !== "CANCELED" ? <SaleEmailButton proforma={proforma} customerEmail={customer?.email || null} customerName={customer?.name || "cliente"} companyName={issuer} saleNumber={String(sale.sale_number)} saleDate={saleDate} total={money(sale.total, currency)} amountPaid={money(sale.amount_paid, currency)} balance={money(sale.balance_due, currency)} /> : null}
+          {sale.status !== "CANCELED" ? <SaleEmailButton proforma={proforma} customerEmail={customer?.email || null} customerName={customer?.name || "cliente"} companyName={issuer} saleNumber={String(sale.sale_number)} saleDate={saleDate} total={money(sale.total, currency)} amountPaid={money(sale.amount_paid, currency)} balance={money(sale.balance_due, currency)} nextPaymentDate={nextPaymentDate} /> : null}
           {canManage ? <details className="rounded-lg border bg-white px-4 py-2 text-sm"><summary className="cursor-pointer list-none font-medium">Editar fecha</summary><form action={updateSaleDateAction} className="mt-3 flex gap-2"><input type="hidden" name="sale_id" value={sale.id} /><input name="sale_date" type="date" defaultValue={String(sale.sold_at).slice(0,10)} required className="rounded-lg border px-3 py-2 text-sm" /><button className="rounded-lg bg-slate-900 px-3 py-2 font-medium text-white">Guardar</button></form></details> : null}
           {canManage && sale.status === "CONFIRMED" ? <details className="rounded-lg border bg-white px-4 py-2 text-sm"><summary className="flex cursor-pointer list-none items-center gap-2 font-medium text-red-700"><Ban className="h-4 w-4" /> Anular venta</summary><form action={cancelSaleAction} className="mt-3 w-72 space-y-3"><input type="hidden" name="sale_id" value={sale.id} /><textarea name="reason" required placeholder="Motivo de anulación" className="w-full rounded-lg border px-3 py-2 text-sm" /><button className="w-full rounded-lg bg-red-700 px-3 py-2 font-medium text-white">Confirmar anulación</button></form></details> : null}
           {canDelete && sale.status === "CANCELED" ? <details className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm"><summary className="flex cursor-pointer list-none items-center gap-2 font-medium text-red-800"><Trash2 className="h-4 w-4" /> Eliminar definitivamente</summary><form action={deleteSaleAction} className="mt-3 w-80 space-y-3"><input type="hidden" name="sale_id" value={sale.id} /><p className="text-xs leading-5 text-red-800">Esta acción elimina el comprobante y sus registros relacionados. No se puede deshacer.</p><input name="confirmation" required placeholder="Escribí ELIMINAR" className="w-full rounded-lg border border-red-200 bg-white px-3 py-2 text-sm" /><button className="w-full rounded-lg bg-red-700 px-3 py-2 font-medium text-white">Eliminar venta</button></form></details> : null}
@@ -91,6 +99,12 @@ export default async function SaleDetailPage({
           <div><p className="text-xs uppercase tracking-wide text-neutral-500">Cliente</p><p className="mt-1 font-medium">{customer?.name || "Consumidor final"}</p>{customer?.tax_id ? <p className="text-sm text-neutral-600">RUC/Documento: {customer.tax_id}</p> : null}{customer?.whatsapp || customer?.phone ? <p className="text-sm text-neutral-600">Contacto: {customer.whatsapp || customer.phone}</p> : null}{customer?.address ? <p className="text-sm text-neutral-600">Dirección: {customer.address}</p> : null}</div>
           <div className="text-right"><p className="text-xs uppercase tracking-wide text-neutral-500">Condición</p><p className="mt-1 font-medium">{saleTypeLabels[sale.sale_type] || sale.sale_type}</p><p className="text-sm text-neutral-600">Pago: {paymentStatusLabels[sale.payment_status] || sale.payment_status}</p>{sale.due_date ? <p className="text-sm text-neutral-600">Vence: {new Date(`${sale.due_date}T00:00:00`).toLocaleDateString("es-PY")}</p> : null}</div>
         </div>
+
+        {recurringMonthly ? <section className="mb-6 rounded-xl border border-blue-200 bg-blue-50 px-5 py-4">
+          <p className="text-xs font-bold uppercase tracking-wide text-blue-700">Próxima fecha de pago</p>
+          <p className="mt-1 text-lg font-bold text-blue-950">{nextPaymentDate ?? "Pendiente de configurar"}</p>
+          {!nextPaymentDate ? <p className="mt-1 text-xs text-blue-700 print:hidden">Agregá el día de vencimiento mensual en la ficha del cliente para mostrar la fecha automáticamente.</p> : null}
+        </section> : null}
 
         <div className="overflow-hidden"><table className="w-full table-fixed text-left text-sm"><thead className="border-y bg-neutral-50"><tr><th className="w-[18%] px-3 py-2">Código</th><th className="w-[32%] px-3 py-2">Detalle</th><th className="w-[10%] px-3 py-2 text-right">Cant.</th><th className="w-[15%] px-3 py-2 text-right">Precio</th><th className="w-[10%] px-3 py-2 text-right">Desc.</th><th className="w-[15%] px-3 py-2 text-right">Total</th></tr></thead><tbody className="divide-y">{items?.map((item) => <tr key={item.id}><td className="break-all px-3 py-3 font-mono text-xs">{item.item_code || "—"}</td><td className="px-3 py-3">{item.description}</td><td className="px-3 py-3 text-right">{Number(item.quantity).toLocaleString("es-PY")}</td><td className="px-3 py-3 text-right">{money(item.unit_price, currency)}</td><td className="px-3 py-3 text-right">{Number(item.discount).toLocaleString("es-PY")}</td><td className="px-3 py-3 text-right font-medium">{money(item.line_total, currency)}</td></tr>)}</tbody></table></div>
 
