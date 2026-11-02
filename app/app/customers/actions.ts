@@ -45,9 +45,9 @@ export async function updateCustomerAction(formData: FormData) {
 
   const customerId = String(formData.get("customer_id") || "");
   const name = String(formData.get("name") || "").trim();
-  if (!customerId || !name) redirect(`/app/customers/${customerId}?error=required`);
+  if (!/^[0-9a-f-]{36}$/i.test(customerId) || !name || name.length > 150) redirect("/app/customers?error=required");
 
-  const { error } = await supabase.from("customers").update({
+  const { data: updated, error } = await supabase.from("customers").update({
     customer_code: text(formData, "customer_code"),
     customer_type: formData.get("customer_type") === "COMPANY" ? "COMPANY" : "PERSON",
     name,
@@ -59,9 +59,9 @@ export async function updateCustomerAction(formData: FormData) {
     city: text(formData, "city"),
     credit_limit: creditLimit(formData),
     notes: text(formData, "notes"),
-  }).eq("id", customerId).eq("organization_id", organizationId);
+  }).eq("id", customerId).eq("organization_id", organizationId).is("deleted_at", null).select("id").maybeSingle();
 
-  if (error) redirect(`/app/customers/${customerId}?error=${error.code === "23505" ? "duplicate_code" : "save"}`);
+  if (error || !updated) redirect(`/app/customers/${customerId}?error=${error?.code === "23505" ? "duplicate_code" : "save"}`);
   revalidatePath("/app/customers");
   revalidatePath(`/app/customers/${customerId}`);
   redirect(`/app/customers/${customerId}?updated=1`);
@@ -73,12 +73,36 @@ export async function setCustomerStatusAction(formData: FormData) {
 
   const customerId = String(formData.get("customer_id") || "");
   const requested = String(formData.get("status") || "ACTIVE");
-  const status = ["ACTIVE", "INACTIVE", "BLOCKED"].includes(requested) ? requested : "ACTIVE";
+  if (!["ACTIVE", "INACTIVE", "BLOCKED"].includes(requested)) redirect("/app/customers?error=status");
+  const status = requested;
   if (!customerId) redirect("/app/customers?error=required");
 
-  const { error } = await supabase.from("customers").update({ status }).eq("id", customerId).eq("organization_id", organizationId);
-  if (error) redirect(`/app/customers/${customerId}?error=status`);
+  const { data, error } = await supabase.from("customers").update({ status }).eq("id", customerId).eq("organization_id", organizationId).is("deleted_at", null).select("id").maybeSingle();
+  if (error || !data) redirect(`/app/customers/${customerId}?error=status`);
   revalidatePath("/app/customers");
   revalidatePath(`/app/customers/${customerId}`);
   redirect(`/app/customers/${customerId}?status_changed=1`);
+}
+
+export async function archiveCustomerAction(formData: FormData) {
+  const { supabase, organizationId, role } = await requireActiveOrganization();
+  if (!["OWNER", "ADMIN"].includes(role)) redirect("/app/customers?error=not_allowed");
+  const customerId = String(formData.get("customer_id") || "").trim();
+  const confirmation = String(formData.get("confirmation") || "").trim().toUpperCase();
+  if (!/^[0-9a-f-]{36}$/i.test(customerId) || confirmation !== "ELIMINAR") {
+    redirect("/app/customers?error=confirmation");
+  }
+
+  // Soft deletion hides the contact without affecting historical sales or accounting records.
+  const { data, error } = await supabase.from("customers")
+    .update({ deleted_at: new Date().toISOString(), status: "INACTIVE" })
+    .eq("id", customerId)
+    .eq("organization_id", organizationId)
+    .is("deleted_at", null)
+    .select("id")
+    .maybeSingle();
+
+  if (error || !data) redirect(`/app/customers/${customerId}?error=archive`);
+  revalidatePath("/app/customers");
+  redirect("/app/customers?archived=1");
 }
