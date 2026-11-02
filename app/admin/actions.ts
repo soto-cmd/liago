@@ -39,6 +39,40 @@ export async function createAdminCompanyAction(formData: FormData) {
   redirect("/admin/companies?created=1");
 }
 
+export async function updateAdminCompanyDetailsAction(formData: FormData) {
+  const { supabase } = await requirePlatformAdmin(["SUPERADMIN", "ADMIN"]);
+  const organizationId = String(formData.get("organization_id") || "").trim();
+  const name = String(formData.get("name") || "").trim();
+  const editPath = `/admin/companies/${encodeURIComponent(organizationId)}/edit`;
+
+  if (!/^[0-9a-f-]{36}$/i.test(organizationId)) redirect("/admin/companies?error=invalid");
+  if (name.length < 2 || name.length > 150) redirect(`${editPath}?error=required`);
+
+  const email = text(formData, "email");
+  if (email && (email.length > 255 || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email))) {
+    redirect(`${editPath}?error=email`);
+  }
+
+  const fields = ["legal_name", "tax_id", "phone", "whatsapp", "address", "city"] as const;
+  const values = Object.fromEntries(fields.map((field) => [field, text(formData, field)]));
+  if (fields.some((field) => (values[field]?.length ?? 0) > 255)) redirect(`${editPath}?error=save`);
+
+  const { data, error } = await supabase.from("organizations")
+    .update({ name, email, ...values })
+    .eq("id", organizationId)
+    .is("deleted_at", null)
+    .select("id")
+    .maybeSingle();
+
+  if (error || !data) redirect(`${editPath}?error=save`);
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/companies");
+  revalidatePath(editPath);
+  revalidatePath("/app");
+  redirect("/admin/companies?updated=details");
+}
+
 export async function updateCompanyStatusAction(formData: FormData) {
   const { supabase } = await requirePlatformAdmin(["SUPERADMIN", "ADMIN"]);
   const organizationId = String(formData.get("organization_id") || "");
