@@ -93,7 +93,18 @@ export async function archiveCustomerAction(formData: FormData) {
     redirect("/app/customers?error=confirmation");
   }
 
-  // Soft deletion hides the contact without affecting historical sales or accounting records.
+  // Keep contacts with transactional history visible so old receipts and ledger views remain intact.
+  const historicalTables = ["sales", "debts", "customer_account_entries"] as const;
+  const checks = await Promise.all(historicalTables.map((table) =>
+    supabase.from(table).select("id", { count: "exact", head: true })
+      .eq("organization_id", organizationId).eq("customer_id", customerId)
+  ));
+  if (checks.some((result) => result.error)) redirect(`/app/customers/${customerId}?error=archive_check`);
+  if (checks.some((result) => (result.count ?? 0) > 0)) {
+    redirect(`/app/customers/${customerId}?error=has_history`);
+  }
+
+  // Soft deletion keeps the record recoverable and does not delete other entities.
   const { data, error } = await supabase.from("customers")
     .update({ deleted_at: new Date().toISOString(), status: "INACTIVE" })
     .eq("id", customerId)
