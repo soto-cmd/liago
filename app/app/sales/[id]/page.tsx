@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Ban, ReceiptText, Trash2 } from "lucide-react";
+import { ArrowLeft, Ban, FileText, ReceiptText, Trash2 } from "lucide-react";
 import { requireActiveOrganization } from "@/lib/organizations/active-organization";
 import { PrintButton } from "@/components/common/print-button";
+import { SaleEmailButton } from "@/components/sales/sale-email-button";
 import { cancelSaleAction, deleteSaleAction, updateSaleDateAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -33,7 +34,7 @@ export default async function SaleDetailPage({
   const [{ data: sale }, { data: items }, { data: debt }, { data: payments }] = await Promise.all([
     supabase
       .from("sales")
-      .select("id,sale_number,sale_type,status,payment_status,sold_at,due_date,subtotal,discount_total,tax_total,total,amount_paid,balance_due,payment_method,reference,notes,customers(id,name,tax_id,phone,whatsapp,address),branches(id,name,address)")
+      .select("id,sale_number,sale_type,status,payment_status,sold_at,due_date,subtotal,discount_total,tax_total,total,amount_paid,balance_due,payment_method,reference,notes,customers(id,name,tax_id,phone,whatsapp,email,address),branches(id,name,address)")
       .eq("id", id)
       .eq("organization_id", organizationId)
       .maybeSingle(),
@@ -43,7 +44,7 @@ export default async function SaleDetailPage({
   ]);
 
   if (!sale) notFound();
-  const customer = sale.customers as unknown as { id:string; name:string; tax_id:string|null; phone:string|null; whatsapp:string|null; address:string|null } | null;
+  const customer = sale.customers as unknown as { id:string; name:string; tax_id:string|null; phone:string|null; whatsapp:string|null; email:string|null; address:string|null } | null;
   const branch = sale.branches as unknown as { id:string; name:string; address:string|null } | null;
   const currency = organization.currency || "PYG";
   const isAMStudio = organization.name.toLowerCase().includes("a&m estudio fotografico");
@@ -51,7 +52,8 @@ export default async function SaleDetailPage({
     const product = item.products as unknown as { unit: string } | null;
     return (product?.unit || "").toUpperCase() === "SERVICIO";
   });
-  const receiptTitle = isServiceReceipt ? "Comprobante de servicio" : "Comprobante de venta";
+  const proforma = messages.document === "proforma" && sale.status !== "CANCELED";
+  const receiptTitle = proforma ? "Factura proforma · No tributaria" : isServiceReceipt ? "Comprobante de servicio" : "Comprobante de venta";
   const saleDate = new Date(sale.sold_at).toLocaleDateString("es-PY", { day: "2-digit", month: "2-digit", year: "numeric" });
 
   return (
@@ -60,12 +62,15 @@ export default async function SaleDetailPage({
         <Link href="/app/sales" className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-950"><ArrowLeft className="h-4 w-4" /> Volver a ventas</Link>
         <div className="flex flex-wrap gap-2">
           <PrintButton />
+          {sale.status !== "CANCELED" ? <Link href={proforma ? "/app/sales/" + sale.id : "/app/sales/" + sale.id + "?document=proforma"} className="inline-flex items-center gap-2 rounded-lg border bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50"><FileText className="h-4 w-4" /> {proforma ? "Ver comprobante" : "Preparar proforma"}</Link> : null}
+          {sale.status !== "CANCELED" ? <SaleEmailButton proforma={proforma} customerEmail={customer?.email || null} customerName={customer?.name || "cliente"} companyName={organization.name} saleNumber={String(sale.sale_number)} saleDate={saleDate} total={money(sale.total, currency)} amountPaid={money(sale.amount_paid, currency)} balance={money(sale.balance_due, currency)} /> : null}
           {canManage ? <details className="rounded-lg border bg-white px-4 py-2 text-sm"><summary className="cursor-pointer list-none font-medium">Editar fecha</summary><form action={updateSaleDateAction} className="mt-3 flex gap-2"><input type="hidden" name="sale_id" value={sale.id} /><input name="sale_date" type="date" defaultValue={String(sale.sold_at).slice(0,10)} required className="rounded-lg border px-3 py-2 text-sm" /><button className="rounded-lg bg-slate-900 px-3 py-2 font-medium text-white">Guardar</button></form></details> : null}
           {canManage && sale.status === "CONFIRMED" ? <details className="rounded-lg border bg-white px-4 py-2 text-sm"><summary className="flex cursor-pointer list-none items-center gap-2 font-medium text-red-700"><Ban className="h-4 w-4" /> Anular venta</summary><form action={cancelSaleAction} className="mt-3 w-72 space-y-3"><input type="hidden" name="sale_id" value={sale.id} /><textarea name="reason" required placeholder="Motivo de anulación" className="w-full rounded-lg border px-3 py-2 text-sm" /><button className="w-full rounded-lg bg-red-700 px-3 py-2 font-medium text-white">Confirmar anulación</button></form></details> : null}
           {canDelete && sale.status === "CANCELED" ? <details className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm"><summary className="flex cursor-pointer list-none items-center gap-2 font-medium text-red-800"><Trash2 className="h-4 w-4" /> Eliminar definitivamente</summary><form action={deleteSaleAction} className="mt-3 w-80 space-y-3"><input type="hidden" name="sale_id" value={sale.id} /><p className="text-xs leading-5 text-red-800">Esta acción elimina el comprobante y sus registros relacionados. No se puede deshacer.</p><input name="confirmation" required placeholder="Escribí ELIMINAR" className="w-full rounded-lg border border-red-200 bg-white px-3 py-2 text-sm" /><button className="w-full rounded-lg bg-red-700 px-3 py-2 font-medium text-white">Eliminar venta</button></form></details> : null}
         </div>
       </div>
 
+      <p className="mb-4 text-xs text-slate-500 print:hidden">El correo se prepara en tu aplicación de email. Revisá el destinatario y adjuntá el PDF guardado con la opción de imprimir antes de enviarlo. La proforma no sustituye una factura tributaria.</p>
       {messages.created ? <div className="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700 print:hidden">Venta confirmada correctamente.</div> : null}
       {messages.date_updated ? <div className="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700 print:hidden">Fecha actualizada correctamente.</div> : null}
       {messages.canceled ? <div className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800 print:hidden">Venta anulada y movimientos revertidos.</div> : null}
@@ -94,6 +99,7 @@ export default async function SaleDetailPage({
         {debt ? <section className="mt-4 border-t pt-4 text-sm"><div className="flex justify-between"><span>Deuda asociada · {paymentStatusLabels[debt.status] || debt.status}</span><span className="font-semibold">Saldo {money(debt.balance, currency)}</span></div></section> : null}
         {sale.notes ? <section className="mt-4 border-t pt-4 text-sm"><span className="font-medium">Notas:</span> {sale.notes}</section> : null}
         {sale.status === "CANCELED" ? <div className="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-center font-semibold text-red-700">VENTA ANULADA</div> : null}
+        {proforma ? <footer className="mt-8 border-t pt-4 text-center text-xs font-semibold text-neutral-600">DOCUMENTO PROFORMA · SIN VALIDEZ TRIBUTARIA. No sustituye una factura electrónica ni constituye comprobante fiscal.</footer> : <footer className="mt-8 border-t pt-4 text-center text-xs text-neutral-500">Este comprobante interno no constituye una factura tributaria.</footer>}
         {isAMStudio ? <footer className="mt-8 border-t pt-4 text-center text-xs text-neutral-500">Gracias por confiar en A&M Estudio Fotográfico.</footer> : null}
       </article>
     </div>

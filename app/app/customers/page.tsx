@@ -6,16 +6,20 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
   const { supabase, organizationId } = await requireActiveOrganization();
   const params = await searchParams;
   const q = typeof params.q === "string" ? params.q.trim() : "";
+  const category = typeof params.category === "string" && ["students", "casual", "recurring"].includes(params.category) ? params.category : "all";
 
   let query = supabase
     .from("customers")
-    .select("id,customer_code,customer_type,name,tax_id,phone,whatsapp,email,city,credit_limit,status,created_at")
+    .select("id,customer_code,customer_type,name,tax_id,phone,whatsapp,email,city,credit_limit,notes,status,created_at")
     .eq("organization_id", organizationId)
     .is("deleted_at", null)
     .order("name");
 
   if (q) query = query.or(`name.ilike.%${q}%,customer_code.ilike.%${q}%,tax_id.ilike.%${q}%,phone.ilike.%${q}%,whatsapp.ilike.%${q}%`);
   const { data: customers } = await query;
+  const categorize = (notes: string | null) => notes?.startsWith("Alumno activo") ? "students" : notes?.startsWith("Cliente de servicio recurrente") ? "recurring" : "casual";
+  const visibleCustomers = category === "all" ? customers : (customers ?? []).filter((customer) => categorize(customer.notes) === category);
+  const activeStudentCount = (customers ?? []).filter((customer) => categorize(customer.notes) === "students").length;
 
   return (
     <div className="p-4 md:p-8 xl:p-10">
@@ -51,19 +55,20 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
         <div className="liago-card mb-5 p-4">
           <form className="flex flex-col gap-3 sm:flex-row">
             <div className="relative flex-1"><Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input name="q" defaultValue={q} placeholder="Buscar por nombre, código, RUC o teléfono" className="liago-input pl-11" /></div>
+<select name="category" defaultValue={category} aria-label="Filtrar clientes por categoría" className="liago-input sm:w-52"><option value="all">Todos los clientes</option><option value="students">Alumnos activos</option><option value="casual">Clientes ocasionales</option><option value="recurring">Otros recurrentes</option></select>
             <button className="liago-btn-secondary"><Search className="h-4 w-4" /> Buscar</button>
           </form>
         </div>
 
         <div className="liago-card overflow-hidden">
-          <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4"><div><div className="font-bold text-slate-950">Base de clientes</div><div className="mt-1 text-xs text-slate-500">{customers?.length ?? 0} registros visibles</div></div></div>
+          <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4"><div><div className="font-bold text-slate-950">Base de clientes</div><div className="mt-1 text-xs text-slate-500">{visibleCustomers?.length ?? 0} registros visibles · {activeStudentCount} alumnos activos</div></div></div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[850px] text-left text-sm">
               <thead className="bg-slate-50/80 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-5 py-4">Cliente</th><th className="px-5 py-4">Código</th><th className="px-5 py-4">Documento</th><th className="px-5 py-4">Contacto</th><th className="px-5 py-4">Crédito</th><th className="px-5 py-4">Estado</th></tr></thead>
               <tbody className="divide-y divide-slate-100">
-                {customers?.length ? customers.map((customer) => (
+                {visibleCustomers?.length ? visibleCustomers.map((customer) => (
                   <tr key={customer.id} className="hover:bg-slate-50/70">
-                    <td className="px-5 py-4"><div className="flex items-center gap-3"><div className={`grid h-10 w-10 place-items-center rounded-xl ${customer.customer_type === "COMPANY" ? "bg-violet-50 text-violet-700" : "bg-blue-50 text-blue-700"}`}>{customer.customer_type === "COMPANY" ? <Building2 className="h-5 w-5" /> : <UserRound className="h-5 w-5" />}</div><div><div className="font-bold text-slate-900">{customer.name}</div><div className="text-xs text-slate-500">{customer.customer_type === "COMPANY" ? "Empresa" : "Persona"}{customer.city ? ` · ${customer.city}` : ""}</div></div></div></td>
+                    <td className="px-5 py-4"><div className="flex items-center gap-3"><div className={`grid h-10 w-10 place-items-center rounded-xl ${customer.customer_type === "COMPANY" ? "bg-violet-50 text-violet-700" : "bg-blue-50 text-blue-700"}`}>{customer.customer_type === "COMPANY" ? <Building2 className="h-5 w-5" /> : <UserRound className="h-5 w-5" />}</div><div><div className="font-bold text-slate-900">{customer.name}</div><div className="text-xs text-slate-500">{customer.customer_type === "COMPANY" ? "Empresa" : "Persona"}{customer.city ? ` · ${customer.city}` : ""}</div><div className="mt-1 text-xs font-semibold text-blue-700">{categorize(customer.notes) === "students" ? "Alumno activo" : categorize(customer.notes) === "recurring" ? "Servicio recurrente" : "Cliente ocasional"}</div></div></div></td>
                     <td className="px-5 py-4"><span className="rounded-lg bg-slate-100 px-2.5 py-1.5 font-mono text-xs font-bold text-slate-700">{customer.customer_code || "—"}</span></td>
                     <td className="px-5 py-4 text-slate-600">{customer.tax_id || "—"}</td>
                     <td className="px-5 py-4"><div className="font-medium text-slate-700">{customer.whatsapp || customer.phone || "—"}</div><div className="text-xs text-slate-400">{customer.email || ""}</div></td>
