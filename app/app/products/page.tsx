@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Barcode, Package, Plus, Search, Tag, Wrench } from "lucide-react";
+import { Barcode, Package, Plus, Search, Store, Tag, Wrench } from "lucide-react";
 import { requireActiveOrganization } from "@/lib/organizations/active-organization";
 
 export default async function ProductsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -23,7 +23,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
       <div className="mx-auto max-w-[1500px]">
         <div className="mb-7 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div><div className="mb-2 flex items-center gap-2 text-sm font-semibold text-blue-700"><Package className="h-4 w-4" /> Productos</div><h1 className="text-3xl font-extrabold tracking-tight text-slate-950">Catálogo de productos</h1><p className="mt-2 text-sm text-slate-500">Administrá códigos, precios, unidades e inventario de artículos físicos.</p></div>
-          <div className="flex flex-wrap gap-2"><Link href="/app/services" className="liago-btn-secondary"><Wrench className="h-4 w-4" /> Ver servicios</Link><Link href="/app/products/categories" className="liago-btn-secondary"><Tag className="h-4 w-4" /> Categorías</Link><Link href="/app/products/new" className="liago-btn-primary"><Plus className="h-4 w-4" /> Nuevo producto</Link></div>
+          <div className="flex flex-wrap gap-2"><Link href="/app/online-store" className="liago-btn-secondary"><Store className="h-4 w-4" /> Tienda online</Link><Link href="/app/services" className="liago-btn-secondary"><Wrench className="h-4 w-4" /> Ver servicios</Link><Link href="/app/products/categories" className="liago-btn-secondary"><Tag className="h-4 w-4" /> Categorías</Link><Link href="/app/products/new" className="liago-btn-primary"><Plus className="h-4 w-4" /> Nuevo producto</Link></div>
         </div>
 
         {params.error ? <div className="mb-4 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-medium text-red-700">No se pudo guardar. Revisá los datos o verificá que el código no esté repetido.</div> : null}
