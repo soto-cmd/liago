@@ -1,3 +1,4 @@
+import type {Metadata} from "next";
 import Link from "next/link";
 import {notFound} from "next/navigation";
 import {ArrowLeft, CheckCircle2, ImageOff, MessageCircle, Share2} from "lucide-react";
@@ -6,6 +7,23 @@ import {ShareProductButton} from "@/components/online-store/share-product-button
 import {ProductGallery} from "@/components/online-store/product-gallery";
 
 export const revalidate=60;
+export async function generateMetadata({params}:{params:Promise<{slug:string;id:string}>}):Promise<Metadata>{
+ const {slug,id}=await params;
+ const store=await fetchPublicStore(slug);
+ if(!store)return {title:"Artículo no disponible",robots:{index:false,follow:false}};
+ const item=await fetchPublicItem(store.organization_id,id);
+ if(!item)return {title:"Artículo no disponible",robots:{index:false,follow:false}};
+ const url=`https://liago.vercel.app/tienda/${store.slug}/${item.id}`;
+ const title=`${item.title} | ${store.title}`;
+ const description=`${item.title} · ${itemMoney(item.price,item.currency)}. ${(item.description||"Consultá disponibilidad al comercio.").slice(0,120)}`;
+ const picture=item.images?.[0]||item.image_url;
+ return {title,description,alternates:{canonical:url},
+  openGraph:{title,description,type:"website",url,siteName:store.title,
+   ...(picture?{images:[{url:picture,alt:item.title}]}:{})},
+  twitter:{card:picture?"summary_large_image":"summary",title,description,
+   ...(picture?{images:[picture]}:{})}};
+}
+
 export default async function StoreProductDetail({params}:{params:Promise<{slug:string;id:string}>}){
  const {slug,id}=await params;
  const store=await fetchPublicStore(slug);

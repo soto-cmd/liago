@@ -129,9 +129,13 @@ export async function removeOnlineStoreProductAction(form: FormData) {
   const ctx=await manager();
   const store=await storefront(ctx);
   const id=field(form,"id");
-  const {error}=await ctx.supabase.from("online_store_items").delete()
-    .eq("id",id).eq("organization_id",ctx.organizationId);
-  if(error) fail("save");
+  const {data: removed,error}=await ctx.supabase.from("online_store_items").delete()
+    .eq("id",id).eq("organization_id",ctx.organizationId).select("id").maybeSingle();
+  if(error||!removed) fail("save");
+  // Cada artículo solo utiliza seis rutas fijas: evitar almacenar archivos abandonados.
+  const paths=Array.from({length:6},(_,index)=>`${ctx.organizationId}/${id}/foto-${index+1}.webp`);
+  const cleanup=await ctx.supabase.storage.from("liago-store-media").remove(paths);
+  if(cleanup.error) console.warn("No se pudieron limpiar todas las fotos del artículo retirado.");
   refresh(store.slug);
   redirect(`${dashboard}?saved=removed`);
 }

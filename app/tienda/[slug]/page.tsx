@@ -1,3 +1,4 @@
+import type {Metadata} from "next";
 import Link from "next/link";
 import {notFound} from "next/navigation";
 import {ArrowLeft, Clock3, ExternalLink, MapPin, MessageCircle, ShieldCheck, ShoppingBag} from "lucide-react";
@@ -5,6 +6,20 @@ import {fetchPublicStore,fetchPublicItems} from "@/lib/online-store/public";
 import {PublicCatalog} from "@/components/online-store/public-catalog";
 
 export const revalidate=60;
+export async function generateMetadata({params}:{params:Promise<{slug:string}>}):Promise<Metadata>{
+ const {slug}=await params;
+ const store=await fetchPublicStore(slug);
+ if(!store)return {title:"Tienda no disponible",robots:{index:false,follow:false}};
+ const description=(store.description||store.tagline||"Encontrá productos, ofertas y novedades de nuestra tienda online.").slice(0,180);
+ const url=`https://liago.vercel.app/tienda/${store.slug}`;
+ const picture=store.banner_url||store.logo_url;
+ return {title:`${store.title} | Tienda online`,description,alternates:{canonical:url},
+   openGraph:{title:store.title,description,type:"website",url,siteName:store.title,
+    ...(picture?{images:[{url:picture,alt:store.title}]}:{})},
+   twitter:{card:picture?"summary_large_image":"summary",title:store.title,description,
+    ...(picture?{images:[picture]}:{})}};
+}
+
 export default async function PublicStorePage({params}:{params:Promise<{slug:string}>}){
  const {slug}=await params;
  const store=await fetchPublicStore(slug);

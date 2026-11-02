@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ExternalLink, Globe2, PackagePlus, ShoppingBag } from "lucide-react";
 import { requireActiveOrganization } from "@/lib/organizations/active-organization";
 import {StoreMediaFields} from "@/components/online-store/store-media-fields";
+import {StoreBrandMedia} from "@/components/online-store/store-brand-media";
 import { publishOnlineStoreProductAction, removeOnlineStoreProductAction, saveOnlineStoreAction, updateOnlineStoreProductAction } from "./actions";
 
 export const dynamic="force-dynamic";
@@ -44,8 +45,7 @@ export default async function OnlineStoreAdmin({searchParams}:{searchParams:Prom
     <label className="text-xs font-bold text-slate-600 sm:col-span-2">Descripción<textarea name="description" rows={2} maxLength={1000} defaultValue={store?.description||""} className={field}/></label>
     <label className="text-xs font-bold text-slate-600">WhatsApp para consultas (con código de país)<input name="whatsapp" placeholder="5959..." defaultValue={store?.whatsapp||""} className={field}/></label>
     <label className="text-xs font-bold text-slate-600">Color principal<input name="accent_color" type="color" defaultValue={store?.accent_color||"#1d4ed8"} className="mt-1 h-11 w-full cursor-pointer rounded-xl border p-1"/></label>
-    <label className="text-xs font-bold text-slate-600">URL del logo (https://)<input name="logo_url" type="url" defaultValue={store?.logo_url||""} className={field}/></label>
-    <label className="text-xs font-bold text-slate-600">URL de portada (https://)<input name="banner_url" type="url" defaultValue={store?.banner_url||""} className={field}/></label>
+    <StoreBrandMedia organizationId={organizationId} initialLogo={store?.logo_url||""} initialBanner={store?.banner_url||""}/>
     <label className="text-xs font-bold text-slate-600">Ubicación Google Maps (URL)<input name="location_url" type="url" defaultValue={store?.location_url||""} className={field}/></label>
     <label className="text-xs font-bold text-slate-600">Horario de atención<input name="opening_hours" maxLength={250} defaultValue={store?.opening_hours||""} className={field}/></label>
     <label className="text-xs font-bold text-slate-600">Instagram (URL)<input name="instagram_url" type="url" defaultValue={store?.instagram_url||""} className={field}/></label>
