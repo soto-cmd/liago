@@ -55,6 +55,7 @@ export async function createServiceAction(formData: FormData) {
     service_responsible_name: text(formData, "service_responsible_name"),
     service_price_variable: formData.get("service_price_variable") === "on",
     service_requires_booking: formData.get("service_requires_booking") === "on",
+    service_recurring_monthly: formData.get("service_recurring_monthly") === "on",
     notes: text(formData, "notes"),
     status: "ACTIVE",
   }).select("id").single();
