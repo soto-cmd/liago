@@ -80,6 +80,7 @@ export default async function OnlineStoreAdmin({searchParams}:{searchParams:Prom
        <StoreMediaFields organizationId={organizationId} itemId={item.id} initialMain={item.image_url||""} initialExtra={Array.isArray(item.images)?item.images.filter((u:string)=>u!==item.image_url).join("\n"):""}/>
 
        <label className="text-xs font-semibold sm:col-span-2">Descripción<textarea name="description" rows={3} defaultValue={item.description||""} className={field}/></label>
+       <label className="text-xs font-semibold sm:col-span-2">Código promocional (si corresponde)<input name="promo_code" maxLength={60} defaultValue={item.promo_code||""} placeholder="Ej. MC-0001" className={field}/></label>
        <label className="text-xs font-semibold">Condición<select name="item_condition" defaultValue={item.item_condition||"NEW"} className={field}><option value="NEW">Nuevo</option><option value="USED">Usado</option></select></label>
        <label className="text-xs font-semibold">Disponibilidad<select name="listing_status" defaultValue={item.listing_status||"AVAILABLE"} className={field}><option value="AVAILABLE">Disponible</option><option value="RESERVED">Reservado</option><option value="SOLD">Vendido</option></select></label>
 
