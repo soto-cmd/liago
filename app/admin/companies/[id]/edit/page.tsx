@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, Building2, Save } from "lucide-react";
 import { notFound } from "next/navigation";
 import { requirePlatformAdmin } from "@/lib/admin/require-platform-admin";
-import { updateAdminCompanyDetailsAction } from "../../actions";
+import { updateAdminCompanyDetailsAction } from "../../../actions";
 
 export default async function EditAdminCompanyPage({
   params,
@@ -23,7 +23,7 @@ export default async function EditAdminCompanyPage({
 
   if (!company) notFound();
 
-  const fields = [
+  const fields: Array<{ name: string; label: string; value: string | null; required?: boolean; type?: string }> = [
     { name: "name", label: "Nombre comercial", value: company.name, required: true },
     { name: "legal_name", label: "Razón social", value: company.legal_name },
     { name: "tax_id", label: "RUC / Documento", value: company.tax_id },
