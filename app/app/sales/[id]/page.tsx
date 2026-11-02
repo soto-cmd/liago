@@ -5,6 +5,7 @@ import { requireActiveOrganization } from "@/lib/organizations/active-organizati
 import { PrintButton } from "@/components/common/print-button";
 import { nextMonthlyPaymentDate } from "@/lib/billing/next-payment-date";
 import { SaleEmailButton } from "@/components/sales/sale-email-button";
+import { setSaleDocumentStatusAction, setSaleEmailStatusAction } from "./tracking-actions";
 import { cancelSaleAction, deleteSaleAction, updateSaleDateAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -32,7 +33,7 @@ export default async function SaleDetailPage({
   const canManage = ["OWNER", "ADMIN", "MANAGER"].includes(role);
   const canDelete = ["OWNER", "ADMIN"].includes(role);
 
-  const [{ data: sale }, { data: items }, { data: debt }, { data: payments }] = await Promise.all([
+  const [{ data: sale }, { data: items }, { data: debt }, { data: payments }, { data: tracking }] = await Promise.all([
     supabase
       .from("sales")
       .select("id,sale_number,sale_type,status,payment_status,sold_at,due_date,subtotal,discount_total,tax_total,total,amount_paid,balance_due,payment_method,reference,notes,customers(id,name,tax_id,phone,whatsapp,email,address,next_payment_day),branches(id,name,address)")
@@ -42,6 +43,7 @@ export default async function SaleDetailPage({
     supabase.from("sale_items").select("id,item_code,description,quantity,unit_price,discount,tax_rate,line_subtotal,line_tax,line_total,products(unit,service_recurring_monthly)").eq("organization_id", organizationId).eq("sale_id", id),
     supabase.from("debts").select("id,original_amount,balance,status,due_date").eq("organization_id", organizationId).eq("sale_id", id).maybeSingle(),
     supabase.from("payments").select("id,payment_number,paid_at,amount,payment_method,status,reference").eq("organization_id", organizationId).eq("sale_id", id).order("paid_at", { ascending: true }),
+    supabase.from("sale_document_tracking").select("document_status,document_recorded_at,external_invoice_number,email_status,email_recipient,email_sent_at,email_reference").eq("organization_id", organizationId).eq("sale_id", id).maybeSingle(),
   ]);
 
   if (!sale) notFound();
@@ -80,6 +82,47 @@ export default async function SaleDetailPage({
       </div>
 
       <p className="mb-4 text-xs text-slate-500 print:hidden">El correo se prepara en tu aplicación de email. Revisá el destinatario y adjuntá el PDF guardado con la opción de imprimir antes de enviarlo. La proforma no sustituye una factura tributaria.</p>
+      {messages.tracking_saved ? <div role="status" className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">Seguimiento actualizado correctamente.</div> : null}
+      {messages.tracking_error ? <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">No se pudo actualizar el seguimiento. Para marcar un correo como enviado, escribí ENVIADO y verificá el destinatario. Para una factura externa, ingresá el número de factura.</div> : null}
+      <section className="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm print:hidden">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div><h2 className="text-base font-bold text-slate-950">Seguimiento del comprobante</h2><p className="text-xs text-slate-500">Los estados se registran por separado del pago. Preparar un correo no significa enviarlo.</p></div>
+          <div className="flex flex-wrap gap-2 text-xs font-semibold">
+            <span className="rounded-full bg-blue-50 px-3 py-1.5 text-blue-700">{tracking?.document_status === "EXTERNAL_INVOICE" ? "Factura externa registrada" : tracking?.document_status === "RECEIPT" ? "Comprobante emitido" : tracking?.document_status === "PROFORMA" ? "Proforma preparada" : "Documento pendiente"}</span>
+            <span className={tracking?.email_status === "SENT" ? "rounded-full bg-emerald-50 px-3 py-1.5 text-emerald-700" : "rounded-full bg-slate-100 px-3 py-1.5 text-slate-600"}>{tracking?.email_status === "SENT" ? "Correo enviado" : tracking?.email_status === "PREPARED" ? "Correo preparado" : "Correo pendiente"}</span>
+          </div>
+        </div>
+        {tracking?.email_status === "SENT" ? <p className="mb-3 text-xs text-slate-600">Enviado a: {tracking.email_recipient}{tracking.email_sent_at ? ` · ${new Date(tracking.email_sent_at).toLocaleString("es-PY", {timeZone:"America/Asuncion"})}` : ""}{tracking.email_reference ? ` · Referencia: ${tracking.email_reference}` : ""}</p> : null}
+        {canManage && sale.status !== "CANCELED" ? <div className="grid gap-4 lg:grid-cols-2">
+          <form action={setSaleDocumentStatusAction} className="space-y-2 rounded-lg border border-slate-200 p-3">
+            <input type="hidden" name="sale_id" value={sale.id}/>
+            <label className="block text-xs font-bold text-slate-600" htmlFor="document-status">Estado del documento</label>
+            <select id="document-status" name="document_status" defaultValue={tracking?.document_status || "PENDING"} className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm">
+              <option value="PENDING">Pendiente de generar</option>
+              <option value="RECEIPT">Comprobante interno emitido</option>
+              <option value="PROFORMA">Proforma preparada (no tributaria)</option>
+              <option value="EXTERNAL_INVOICE">Factura tributaria emitida externamente</option>
+            </select>
+            <label className="block text-xs text-slate-600" htmlFor="external-invoice-number">N.º de factura tributaria externa (solo si corresponde)</label>
+            <input id="external-invoice-number" name="external_invoice_number" maxLength={100} defaultValue={tracking?.external_invoice_number || ""} placeholder="Número oficial; obligatorio para factura externa" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+            <button type="submit" className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800">Guardar documento</button>
+          </form>
+          <form action={setSaleEmailStatusAction} className="space-y-2 rounded-lg border border-slate-200 p-3">
+            <input type="hidden" name="sale_id" value={sale.id}/>
+            <label className="block text-xs font-bold text-slate-600" htmlFor="email-status">Estado del correo</label>
+            <select id="email-status" name="email_status" defaultValue={tracking?.email_status || "NOT_PREPARED"} className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm">
+              <option value="NOT_PREPARED">Pendiente</option>
+              <option value="PREPARED">Borrador preparado (no enviado)</option>
+              <option value="SENT">Enviado (confirmación manual)</option>
+            </select>
+            <input name="email_recipient" type="email" maxLength={255} aria-label="Correo del destinatario" defaultValue={tracking?.email_recipient || customer?.email || ""} placeholder="Correo del destinatario" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"/>
+            <input name="email_reference" maxLength={255} defaultValue={tracking?.email_reference || ""} placeholder="Referencia del correo (opcional)" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"/>
+            <p className="text-xs text-slate-500">Para confirmar que realmente se envió, seleccioná Enviado y escribí ENVIADO.</p>
+            <input name="confirm_sent" aria-label="Confirmar correo enviado" placeholder="ENVIADO (solo para marcar enviado)" autoComplete="off" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"/>
+            <button type="submit" className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800">Guardar correo</button>
+          </form>
+        </div> : null}
+      </section>
       {messages.created ? <div className="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700 print:hidden">Venta confirmada correctamente.</div> : null}
       {messages.date_updated ? <div className="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700 print:hidden">Fecha actualizada correctamente.</div> : null}
       {messages.canceled ? <div className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800 print:hidden">Venta anulada y movimientos revertidos.</div> : null}
