@@ -104,6 +104,7 @@ export async function updateOnlineStoreProductAction(form: FormData) {
   const originalRaw=field(form,"compare_at_price");
   const compare=originalRaw ? Number(originalRaw) : null;
   const published=field(form,"is_published")==="on";
+  const promoCode=field(form,"promo_code").slice(0,60);
   const extraPhotos=field(form,"images").split(/\\r?\\n|,/).map(x=>x.trim()).filter(Boolean);
   const allPhotos=[imageRaw,...extraPhotos].filter(Boolean);
   const condition=field(form,"item_condition")||"NEW";
@@ -116,7 +117,7 @@ export async function updateOnlineStoreProductAction(form: FormData) {
   const { data: row,error } = await ctx.supabase.from("online_store_items")
     .update({title,description:description||null,category_name:category||"Otros",
       image_url:safeUrl(allPhotos[0]||""),images:allPhotos.map(u=>safeUrl(u)!),
-      item_condition:condition,listing_status:listingStatus,
+      item_condition:condition,listing_status:listingStatus,promo_code:promoCode||null,
       price,compare_at_price:compare,is_published:published,
       updated_at:new Date().toISOString()})
     .eq("id",id).eq("organization_id",ctx.organizationId).select("id").maybeSingle();

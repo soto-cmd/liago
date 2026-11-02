@@ -47,6 +47,7 @@ export default async function StoreProductDetail({params}:{params:Promise<{slug:
     <div className="mt-6">{savings>0&&item.compare_at_price?<p className="text-sm text-slate-400 line-through">{itemMoney(item.compare_at_price,item.currency)}</p>:null}
      <p className="text-4xl font-extrabold text-slate-950">{itemMoney(item.price,item.currency)}</p>
      {savings>0?<p className="mt-2 text-sm font-bold text-red-600">Ahorrás {itemMoney(savings,item.currency)}</p>:null}
+     {item.promo_code?<p className="mt-3 inline-flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"><strong>Promoción</strong><code className="font-bold">{item.promo_code}</code></p>:null}
     </div>
     <div className="my-6 border-t border-slate-200"/>
     <h2 className="font-bold">Descripción</h2>

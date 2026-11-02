@@ -50,7 +50,7 @@ export function PublicCatalog({items,slug,whatsapp}:Props) {
  const cartCount=cartItems.reduce((sum,x)=>sum+(cart[x.id]||0),0);
  const cartTotal=cartItems.reduce((sum,x)=>sum+(cart[x.id]||0)*x.price,0);
  const waDigits=digits(whatsapp);
- const cartMessage=cartItems.map(x=>`• ${x.code} · ${x.title} (x${cart[x.id]}) — ${itemMoney(x.price*cart[x.id],x.currency)}`).join("\n");
+ const cartMessage=cartItems.map(x=>`• ${x.code} · ${x.title} (x${cart[x.id]}) — ${itemMoney(x.price*cart[x.id],x.currency)}${x.promo_code?` · Promoción: ${x.promo_code}`:""}`).join("\n");
  const cartLink=waDigits&&cartItems.length?`https://wa.me/${waDigits}?text=${encodeURIComponent(`Hola, quisiera consultar por estos productos de la tienda:\n\n${cartMessage}\n\nTotal estimado: ${itemMoney(cartTotal,"PYG")}\n¿Están disponibles? Muchas gracias.`)}`:null;
  function count(id:string,delta:number){setCart(old=>{const n=Math.max(0,Math.min(99,(old[id]||0)+delta));const next={...old};if(n===0)delete next[id];else next[id]=n;return next;});}
  function favorite(id:string){setFavorites(old=>old.includes(id)?old.filter(x=>x!==id):[...old,id].slice(0,200));}
@@ -104,6 +104,7 @@ export function PublicCatalog({items,slug,whatsapp}:Props) {
         <Link href={`/tienda/${slug}/${item.id}`} className="mt-1 line-clamp-2 min-h-10 text-sm font-bold leading-5 text-slate-900 hover:text-blue-700">{item.title}</Link>
         <div className="mt-2">{item.compare_at_price&&discount>0?<div className="text-xs text-slate-400 line-through">{itemMoney(item.compare_at_price,item.currency)}</div>:null}<div className="text-lg font-extrabold text-slate-950">{itemMoney(item.price,item.currency)}</div></div>
         <p className="mt-1 text-[11px] text-slate-500">{item.item_condition==="USED"?"Usado":"Nuevo"}</p>
+        {item.promo_code?<p className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-red-600">Código de oferta: <span className="font-mono">{item.promo_code}</span></p>:null}
         <div className="mt-auto grid grid-cols-[1fr_auto_auto] gap-1.5 pt-4">
          <Link href={`/tienda/${slug}/${item.id}`} className="rounded-lg border px-2 py-2 text-center text-xs font-bold text-slate-700 hover:bg-slate-50">Detalle</Link>
          {available?<button type="button" onClick={()=>count(item.id,1)} title="Agregar a lista de consulta" aria-label={`Agregar ${item.title} a lista`} className="rounded-lg bg-slate-900 p-2 text-white hover:bg-slate-700"><Plus className="h-4 w-4"/></button>:null}
