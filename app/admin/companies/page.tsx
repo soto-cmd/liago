@@ -1,9 +1,10 @@
-import { Building2, Plus, Search } from "lucide-react";
+import { Building2, Pencil, Plus, Search } from "lucide-react";
+import Link from "next/link";
 import { requirePlatformAdmin } from "@/lib/admin/require-platform-admin";
 import { createAdminCompanyAction, updateCompanyPlanAction, updateCompanyStatusAction } from "../actions";
 
 export default async function AdminCompaniesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const { supabase } = await requirePlatformAdmin();
+  const { supabase, role } = await requirePlatformAdmin();
   const params = await searchParams;
   const q = typeof params.q === "string" ? params.q.trim() : "";
   const updated = typeof params.updated === "string" ? params.updated : "";
@@ -52,6 +53,7 @@ export default async function AdminCompaniesPage({ searchParams }: { searchParam
 
         {params.created ? <div className="mb-4 rounded-xl bg-emerald-50 p-3 text-sm font-medium text-emerald-700">Empresa creada correctamente.</div> : null}
         {updated === "plan" ? <div className="mb-4 rounded-xl bg-emerald-50 p-3 text-sm font-medium text-emerald-700">Plan actualizado correctamente.</div> : null}
+        {updated === "details" ? <div role="status" className="mb-4 rounded-xl bg-emerald-50 p-3 text-sm font-medium text-emerald-700">Datos de la empresa actualizados correctamente.</div> : null}
         {updated === "status" ? <div className="mb-4 rounded-xl bg-emerald-50 p-3 text-sm font-medium text-emerald-700">Estado actualizado correctamente.</div> : null}
         {params.error ? <div className="mb-4 rounded-xl bg-rose-50 p-3 text-sm font-medium text-rose-700">No se pudo completar la operación.</div> : null}
 
@@ -63,7 +65,7 @@ export default async function AdminCompaniesPage({ searchParams }: { searchParam
         <div className="liago-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-5 py-4">Empresa</th><th className="px-5 py-4">Contacto</th><th className="px-5 py-4">Plan</th><th className="px-5 py-4">Estado</th><th className="px-5 py-4">Creada</th></tr></thead>
+              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-5 py-4">Empresa</th><th className="px-5 py-4">Contacto</th><th className="px-5 py-4">Plan</th><th className="px-5 py-4">Estado</th><th className="px-5 py-4">Creada</th><th className="px-5 py-4">Acciones</th></tr></thead>
               <tbody className="divide-y divide-slate-100">
                 {companies?.length ? companies.map((company) => (
                   <tr key={company.id} className="align-top hover:bg-slate-50/70">
@@ -72,8 +74,9 @@ export default async function AdminCompaniesPage({ searchParams }: { searchParam
                     <td className="px-5 py-4"><form action={updateCompanyPlanAction} className="flex gap-2"><input type="hidden" name="organization_id" value={company.id} /><select name="plan" defaultValue={planByOrg.get(company.id) || "FREE"} className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-bold"><option>FREE</option><option>BASIC</option><option>PRO</option><option>BUSINESS</option></select><button className="text-xs font-bold text-blue-700">Guardar</button></form></td>
                     <td className="px-5 py-4"><form action={updateCompanyStatusAction} className="flex gap-2"><input type="hidden" name="organization_id" value={company.id} /><select name="status" defaultValue={company.status} className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-bold"><option value="ACTIVE">Activa</option><option value="INACTIVE">Inactiva</option><option value="SUSPENDED">Suspendida</option></select><button className="text-xs font-bold text-blue-700">Guardar</button></form></td>
                     <td className="px-5 py-4 text-slate-500">{new Date(company.created_at).toLocaleDateString("es-PY")}</td>
+                    <td className="px-5 py-4">{["SUPERADMIN", "ADMIN"].includes(role) ? <Link href={`/admin/companies/${company.id}/edit`} className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 transition-colors hover:bg-blue-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"><Pencil className="h-3.5 w-3.5" /> Editar</Link> : <span className="text-xs text-slate-400">Solo lectura</span>}</td>
                   </tr>
-                )) : <tr><td colSpan={5} className="px-5 py-12 text-center text-slate-500">Todavía no hay empresas.</td></tr>}
+                )) : <tr><td colSpan={6} className="px-5 py-12 text-center text-slate-500">Todavía no hay empresas.</td></tr>}
               </tbody>
             </table>
           </div>
