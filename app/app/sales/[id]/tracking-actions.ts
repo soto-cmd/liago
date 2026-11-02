@@ -72,13 +72,23 @@ export async function setSaleEmailStatusAction(formData: FormData) {
   if (recipient.length > 255 || reference.length > 255) {
     redirect(`${route(saleId)}?tracking_error=email`);
   }
+  const { data: previous, error: readError } = await ctx.supabase
+    .from("sale_document_tracking")
+    .select("email_status,email_recipient,email_sent_at,email_reference")
+    .eq("sale_id", saleId)
+    .eq("organization_id", ctx.organizationId)
+    .maybeSingle();
+  if (readError || !previous) redirect(`${route(saleId)}?tracking_error=save`);
+
   const now = new Date().toISOString();
+  const sameConfirmedSend = status === "SENT" && previous.email_status === "SENT"
+    && previous.email_recipient === recipient;
   const { data, error } = await ctx.supabase.from("sale_document_tracking")
     .update({
       email_status: status,
       email_recipient: status === "NOT_PREPARED" ? null : (recipient || null),
-      email_sent_at: status === "SENT" ? now : null,
-      email_reference: status === "SENT" ? (reference || "Registrado manualmente") : null,
+      email_sent_at: status === "SENT" ? (sameConfirmedSend && previous.email_sent_at ? previous.email_sent_at : now) : null,
+      email_reference: status === "SENT" ? (reference || (sameConfirmedSend ? previous.email_reference : null) || "Registrado manualmente") : null,
       updated_at: now,
       updated_by: ctx.userId,
     })
