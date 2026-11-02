@@ -49,7 +49,7 @@ export async function updateAdminCompanyDetailsAction(formData: FormData) {
   if (name.length < 2 || name.length > 150) redirect(`${editPath}?error=required`);
 
   const email = text(formData, "email");
-  if (email && (email.length > 255 || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email))) {
+  if (email && (email.length > 255 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
     redirect(`${editPath}?error=email`);
   }
 
