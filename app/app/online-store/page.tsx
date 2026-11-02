@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ExternalLink, Globe2, PackagePlus, ShoppingBag } from "lucide-react";
 import { requireActiveOrganization } from "@/lib/organizations/active-organization";
+import {StoreMediaFields} from "@/components/online-store/store-media-fields";
 import { publishOnlineStoreProductAction, removeOnlineStoreProductAction, saveOnlineStoreAction, updateOnlineStoreProductAction } from "./actions";
 
 export const dynamic="force-dynamic";
@@ -23,7 +24,7 @@ export default async function OnlineStoreAdmin({searchParams}:{searchParams:Prom
  return <main className="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
   <div className="flex flex-wrap items-start justify-between gap-4">
    <div><p className="flex items-center gap-2 text-sm font-bold text-blue-700"><ShoppingBag className="h-4 w-4"/> Comercio digital</p><h1 className="mt-1 text-3xl font-extrabold text-slate-950">Mi tienda online</h1>
-   <p className="mt-2 max-w-2xl text-sm text-slate-600">Publicá artículos de tu empresa, compartí el catálogo y recibí consultas por WhatsApp. Inspirado en Mercado SMF, sin mezclar inventarios ni datos de otras empresas.</p></div>
+   <p className="mt-2 max-w-2xl text-sm text-slate-600">Publicá artículos de tu empresa, compartí el catálogo y recibí consultas por WhatsApp. Cada empresa gestiona sus publicaciones de forma independiente, con control de precios y disponibilidad.</p></div>
    {store?.is_published ? <Link href={`/tienda/${store.slug}`} target="_blank" rel="noopener noreferrer" className="liago-btn-primary"><ExternalLink className="h-4 w-4"/> Ver tienda pública</Link>:null}
   </div>
   {params.saved?<div role="status" className="rounded-xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">Cambios guardados correctamente. Los artículos solo se muestran al público si la tienda y cada artículo están publicados.</div>:null}
@@ -45,6 +46,13 @@ export default async function OnlineStoreAdmin({searchParams}:{searchParams:Prom
     <label className="text-xs font-bold text-slate-600">Color principal<input name="accent_color" type="color" defaultValue={store?.accent_color||"#1d4ed8"} className="mt-1 h-11 w-full cursor-pointer rounded-xl border p-1"/></label>
     <label className="text-xs font-bold text-slate-600">URL del logo (https://)<input name="logo_url" type="url" defaultValue={store?.logo_url||""} className={field}/></label>
     <label className="text-xs font-bold text-slate-600">URL de portada (https://)<input name="banner_url" type="url" defaultValue={store?.banner_url||""} className={field}/></label>
+    <label className="text-xs font-bold text-slate-600">Ubicación Google Maps (URL)<input name="location_url" type="url" defaultValue={store?.location_url||""} className={field}/></label>
+    <label className="text-xs font-bold text-slate-600">Horario de atención<input name="opening_hours" maxLength={250} defaultValue={store?.opening_hours||""} className={field}/></label>
+    <label className="text-xs font-bold text-slate-600">Instagram (URL)<input name="instagram_url" type="url" defaultValue={store?.instagram_url||""} className={field}/></label>
+    <label className="text-xs font-bold text-slate-600">Facebook (URL)<input name="facebook_url" type="url" defaultValue={store?.facebook_url||""} className={field}/></label>
+    <label className="text-xs font-bold text-slate-600">TikTok (URL)<input name="tiktok_url" type="url" defaultValue={store?.tiktok_url||""} className={field}/></label>
+    <label className="text-xs font-bold text-slate-600">Sitio web (URL)<input name="website_url" type="url" defaultValue={store?.website_url||""} className={field}/></label>
+    <label className="text-xs font-bold text-slate-600 sm:col-span-2">Condiciones de venta y entrega<textarea name="terms" maxLength={1500} rows={3} defaultValue={store?.terms||""} className={field}/></label>
     <label className="flex items-center gap-3 rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm font-semibold sm:col-span-2"><input type="checkbox" name="is_published" defaultChecked={store?.is_published||false} className="h-4 w-4"/> Publicar la tienda y habilitar su enlace para los visitantes</label>
     <button className="liago-btn-primary sm:col-span-2">Guardar configuración de la tienda</button>
     <p className="text-xs text-slate-500 sm:col-span-2">La tienda comienza privada. El nombre del enlace debe ser único entre todas las empresas de Liago. Si cambiás el enlace, actualizá los links que ya compartiste.</p>
@@ -69,8 +77,12 @@ export default async function OnlineStoreAdmin({searchParams}:{searchParams:Prom
        <label className="text-xs font-semibold">Categoría<input name="category_name" defaultValue={item.category_name||"Otros"} maxLength={80} className={field}/></label>
        <label className="text-xs font-semibold">Precio de venta (G.)<input name="price" defaultValue={item.price} type="number" min={0} step="1" required className={field}/></label>
        <label className="text-xs font-semibold">Precio anterior (G., opcional)<input name="compare_at_price" defaultValue={item.compare_at_price||""} type="number" min={0} step="1" className={field}/></label>
-       <label className="text-xs font-semibold sm:col-span-2">Imagen (URL https://)<input name="image_url" type="url" defaultValue={item.image_url||""} className={field}/></label>
+       <StoreMediaFields organizationId={organizationId} itemId={item.id} initialMain={item.image_url||""} initialExtra={Array.isArray(item.images)?item.images.filter((u:string)=>u!==item.image_url).join("\n"):""}/>
+
        <label className="text-xs font-semibold sm:col-span-2">Descripción<textarea name="description" rows={3} defaultValue={item.description||""} className={field}/></label>
+       <label className="text-xs font-semibold">Condición<select name="item_condition" defaultValue={item.item_condition||"NEW"} className={field}><option value="NEW">Nuevo</option><option value="USED">Usado</option></select></label>
+       <label className="text-xs font-semibold">Disponibilidad<select name="listing_status" defaultValue={item.listing_status||"AVAILABLE"} className={field}><option value="AVAILABLE">Disponible</option><option value="RESERVED">Reservado</option><option value="SOLD">Vendido</option></select></label>
+
        <label className="flex items-center gap-2 rounded-lg bg-blue-50 p-3 text-sm font-semibold sm:col-span-2"><input type="checkbox" name="is_published" defaultChecked={item.is_published}/> Mostrar en la tienda pública</label>
        <button className="liago-btn-primary sm:col-span-2">Guardar artículo</button>
       </form>

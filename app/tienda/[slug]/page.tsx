@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {notFound} from "next/navigation";
-import {ArrowLeft, MessageCircle, ShieldCheck, ShoppingBag} from "lucide-react";
+import {ArrowLeft, Clock3, ExternalLink, MapPin, MessageCircle, ShieldCheck, ShoppingBag} from "lucide-react";
 import {fetchPublicStore,fetchPublicItems} from "@/lib/online-store/public";
 import {PublicCatalog} from "@/components/online-store/public-catalog";
 
@@ -23,17 +23,30 @@ export default async function PublicStorePage({params}:{params:Promise<{slug:str
   </header>
   <section className="relative overflow-hidden bg-slate-900 text-white">
    {store.banner_url?<img src={store.banner_url} alt="" className="absolute inset-0 h-full w-full object-cover opacity-30"/>:null}
-   <div className="relative mx-auto flex min-h-64 max-w-7xl flex-col justify-center px-4 py-12 md:px-8">
+   <div className="relative mx-auto flex min-h-48 max-w-7xl flex-col justify-center px-4 py-9 md:px-8 md:py-11">
     <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-200">Bienvenido a nuestra tienda</p>
     <h1 className="mt-3 max-w-3xl text-3xl font-extrabold tracking-tight md:text-5xl">{store.tagline||store.title}</h1>
     {store.description?<p className="mt-4 max-w-xl text-sm leading-relaxed text-slate-200">{store.description}</p>:null}
-    <div className="mt-7 flex flex-wrap gap-3">
+    <div className="mt-5 flex flex-wrap gap-3">
      <a href="#catalogo" style={{backgroundColor:store.accent_color}} className="inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold text-white"><ShoppingBag className="h-4 w-4"/> Explorar artículos</a>
      {whatsapp?<a href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(`Hola, quisiera consultar por la tienda ${store.title}.`)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-xl border border-white/30 px-5 py-3 text-sm font-semibold"><MessageCircle className="h-4 w-4"/> Contactar tienda</a>:null}
     </div>
    </div>
   </section>
   <PublicCatalog items={items} slug={store.slug} whatsapp={store.whatsapp}/>
+  {(store.location_url||store.opening_hours||store.terms||store.instagram_url||store.facebook_url||store.tiktok_url||store.website_url)?<section className="border-t bg-white"><div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
+    <h2 className="text-xl font-extrabold">Información del comercio</h2>
+    <div className="mt-4 grid gap-5 text-sm text-slate-600 md:grid-cols-2">
+     <div className="space-y-3">
+      {store.opening_hours?<p className="flex items-start gap-2"><Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-blue-700"/><span><strong className="block text-slate-800">Horario de atención</strong>{store.opening_hours}</span></p>:null}
+      {store.location_url?<a href={store.location_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 font-bold text-blue-700 underline"><MapPin className="h-4 w-4"/> Ver ubicación</a>:null}
+      {store.terms?<div><strong className="block text-slate-800">Condiciones</strong><p className="mt-1 whitespace-pre-line leading-relaxed">{store.terms}</p></div>:null}
+     </div>
+     <div><strong className="block text-slate-800">Encontranos también en</strong><div className="mt-3 flex flex-wrap gap-2">
+      {([["Instagram",store.instagram_url],["Facebook",store.facebook_url],["TikTok",store.tiktok_url],["Sitio web",store.website_url]] as const).filter(([,url])=>Boolean(url)).map(([label,url])=><a key={label} href={url!} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold hover:bg-slate-50">{label}<ExternalLink className="h-3 w-3"/></a>)}
+     </div></div>
+    </div>
+   </div></section>:null}
   <footer className="border-t bg-white"><div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-6 text-xs text-slate-500 md:px-8"><span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4"/> Consulta directa con el comercio. Precios sujetos a confirmación.</span><Link href="/"><span className="inline-flex items-center gap-1 font-semibold text-slate-600"><ArrowLeft className="h-3 w-3"/> Desarrollado con Liago</span></Link></div></footer>
  </main>;
 }

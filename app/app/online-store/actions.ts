@@ -42,17 +42,27 @@ export async function saveOnlineStoreAction(form: FormData) {
   const bannerRaw = field(form,"banner_url");
   const color = field(form,"accent_color");
   const published = field(form,"is_published") === "on";
+  const location = field(form,"location_url");
+  const instagram = field(form,"instagram_url");
+  const facebook = field(form,"facebook_url");
+  const tiktok = field(form,"tiktok_url");
+  const website = field(form,"website_url");
+  const terms = field(form,"terms").slice(0,1500);
+  const openingHours = field(form,"opening_hours").slice(0,250);
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length < 3 || slug.length > 70
       || title.length < 2 || title.length > 120
       || (logoRaw && !safeUrl(logoRaw)) || (bannerRaw && !safeUrl(bannerRaw))
-      || (color && !/^#[0-9a-f]{6}$/i.test(color))) fail("validation");
+      || (color && !/^#[0-9a-f]{6}$/i.test(color))
+      || [location,instagram,facebook,tiktok,website].some(u=>u && !safeUrl(u))) fail("validation");
   const { data: old } = await ctx.supabase.from("online_stores")
     .select("slug").eq("organization_id",ctx.organizationId).maybeSingle();
   const { error } = await ctx.supabase.from("online_stores").upsert({
     organization_id:ctx.organizationId,slug,title,tagline:tagline||null,
     description:description||null,whatsapp:whatsapp||null,logo_url:safeUrl(logoRaw),
     banner_url:safeUrl(bannerRaw),accent_color:color||"#1d4ed8",
-    is_published:published,updated_at:new Date().toISOString()
+    is_published:published,location_url:safeUrl(location),instagram_url:safeUrl(instagram),
+    facebook_url:safeUrl(facebook),tiktok_url:safeUrl(tiktok),website_url:safeUrl(website),
+    terms:terms||null,opening_hours:openingHours||null,updated_at:new Date().toISOString()
   },{onConflict:"organization_id"});
   if (error) fail("save");
   refresh(slug);
@@ -74,7 +84,8 @@ export async function publishOnlineStoreProductAction(form: FormData) {
     organization_id:ctx.organizationId,product_id:product.id,
     title:product.name,code:product.code,description:product.description,
     category_name:category?.name || "Otros",image_url:safeUrl(product.image_url||""),
-    price:Number(product.sale_price),currency:"PYG",is_published:false
+    price:Number(product.sale_price),currency:"PYG",is_published:false,
+    images:safeUrl(product.image_url||"")?[safeUrl(product.image_url||"")]:[],item_condition:"NEW",listing_status:"AVAILABLE"
   },{onConflict:"organization_id,product_id",ignoreDuplicates:true});
   if(error) fail("save");
   refresh(store.slug);
@@ -93,12 +104,20 @@ export async function updateOnlineStoreProductAction(form: FormData) {
   const originalRaw=field(form,"compare_at_price");
   const compare=originalRaw ? Number(originalRaw) : null;
   const published=field(form,"is_published")==="on";
+  const extraPhotos=field(form,"images").split(/\\r?\\n|,/).map(x=>x.trim()).filter(Boolean);
+  const allPhotos=[imageRaw,...extraPhotos].filter(Boolean);
+  const condition=field(form,"item_condition")||"NEW";
+  const listingStatus=field(form,"listing_status")||"AVAILABLE";
   if (!title || title.length>160 || !Number.isFinite(price) || price<0
       || (compare!==null && (!Number.isFinite(compare)||compare<price))
-      || (imageRaw && !safeUrl(imageRaw))) fail("validation");
+      || allPhotos.length>6 || allPhotos.some(p=>!safeUrl(p))
+      || !["NEW","USED"].includes(condition)
+      || !["AVAILABLE","RESERVED","SOLD"].includes(listingStatus)) fail("validation");
   const { data: row,error } = await ctx.supabase.from("online_store_items")
     .update({title,description:description||null,category_name:category||"Otros",
-      image_url:safeUrl(imageRaw),price,compare_at_price:compare,is_published:published,
+      image_url:safeUrl(allPhotos[0]||""),images:allPhotos.map(u=>safeUrl(u)!),
+      item_condition:condition,listing_status:listingStatus,
+      price,compare_at_price:compare,is_published:published,
       updated_at:new Date().toISOString()})
     .eq("id",id).eq("organization_id",ctx.organizationId).select("id").maybeSingle();
   if(error||!row) fail("save");
