@@ -131,7 +131,7 @@ export function PublicCatalog({items,slug,whatsapp}:Props) {
    </div>:null}
    <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-xs font-semibold text-slate-500">
     <a href="#" className="inline-flex items-center gap-1 rounded-lg border bg-white px-3 py-2"><ArrowUp className="h-3 w-3"/> Arriba</a>
-    <Link href={`/tienda/${slug}`} className="inline-flex items-center gap-1 rounded-lg border bg-white px-3 py-2"><Home className="h-3 w-3"/> Inicio</Link>
+    <a href="#inicio" aria-label="Ir al inicio de la tienda" className="inline-flex items-center gap-1 rounded-lg border bg-white px-3 py-2 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"><Home className="h-3 w-3"/> Ir a inicio</a>
     <button type="button" onClick={()=>{clearFilters();setFeedback("Filtros restablecidos");}} className="inline-flex items-center gap-1 rounded-lg border bg-white px-3 py-2"><Tag className="h-3 w-3"/> Ver todos</button>
    </div>
  </section>;
