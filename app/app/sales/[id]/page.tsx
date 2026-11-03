@@ -71,8 +71,7 @@ export default async function SaleDetailPage({
   const documentCode = `${proforma ? "PRO" : "COM"}-${String(sale.sale_number).padStart(6, "0")}`;
   const safeFilenamePart = (value: string) =>
     value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "");
-  const documentKind = proforma ? "Factura-Proforma" : isServiceReceipt ? "Comprobante-Servicio" : "Comprobante-Venta";
-  const pdfFilename = `${documentKind}_${safeFilenamePart(issuer)}_${documentCode}_${safeFilenamePart(customer?.name || "Consumidor-final")}_${String(sale.sold_at).slice(0, 10)}.pdf`;
+  const pdfFilename = `${documentCode}_${safeFilenamePart(customer?.name || "Cliente")}.pdf`;
 
   return (
     <div className="p-4 md:p-8 print:p-0 print:bg-white">
