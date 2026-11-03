@@ -69,7 +69,10 @@ export default async function SaleDetailPage({
   // Existing organization-scoped sale_number remains the source of truth.
   // This is a document reference, NOT an official tax invoice number.
   const documentCode = `${proforma ? "PRO" : "COM"}-${String(sale.sale_number).padStart(6, "0")}`;
-  const pdfFilename = `${documentCode}_${(customer?.name || "Consumidor-final").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9-]+/g, "-").replace(/^-|-$/g, "")}.pdf`;
+  const safeFilenamePart = (value: string) =>
+    value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const documentKind = proforma ? "Factura-Proforma" : isServiceReceipt ? "Comprobante-Servicio" : "Comprobante-Venta";
+  const pdfFilename = `${documentKind}_${safeFilenamePart(issuer)}_${documentCode}_${safeFilenamePart(customer?.name || "Consumidor-final")}_${String(sale.sold_at).slice(0, 10)}.pdf`;
 
   return (
     <div className="p-4 md:p-8 print:p-0 print:bg-white">
@@ -85,6 +88,7 @@ export default async function SaleDetailPage({
         </div>
       </div>
 
+      <p className="mb-2 break-all text-xs text-slate-600 print:hidden">Nombre sugerido del archivo: <span className="font-medium text-slate-900">{pdfFilename}</span></p>
       <p className="mb-4 text-xs text-slate-500 print:hidden">El correo se prepara en tu aplicación de email. Revisá el destinatario y adjuntá el PDF guardado con el botón «Guardar como PDF» antes de enviarlo. La proforma no sustituye una factura tributaria.</p>
       {messages.tracking_saved ? <div role="status" className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">Seguimiento actualizado correctamente.</div> : null}
       {messages.tracking_error ? <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">No se pudo actualizar el seguimiento. Para marcar un correo como enviado, escribí ENVIADO y verificá el destinatario. Para una factura externa, ingresá el número de factura.</div> : null}
