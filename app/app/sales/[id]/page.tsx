@@ -66,13 +66,17 @@ export default async function SaleDetailPage({
   const proforma = messages.document === "proforma" && sale.status !== "CANCELED";
   const receiptTitle = proforma ? "Factura proforma · No tributaria" : isServiceReceipt ? "Comprobante de servicio" : "Comprobante de venta";
   const saleDate = new Date(sale.sold_at).toLocaleDateString("es-PY", { day: "2-digit", month: "2-digit", year: "numeric" });
+  // Existing organization-scoped sale_number remains the source of truth.
+  // This is a document reference, NOT an official tax invoice number.
+  const documentCode = `${proforma ? "PRO" : "COM"}-${String(sale.sale_number).padStart(6, "0")}`;
+  const pdfFilename = `${documentCode}_${(customer?.name || "Consumidor-final").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9-]+/g, "-").replace(/^-|-$/g, "")}.pdf`;
 
   return (
     <div className="p-4 md:p-8 print:p-0 print:bg-white">
       <div className="mb-6 flex flex-col gap-3 print:hidden md:flex-row md:items-center md:justify-between">
         <Link href="/app/sales" className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-950"><ArrowLeft className="h-4 w-4" /> Volver a ventas</Link>
         <div className="flex flex-wrap gap-2">
-          <PrintButton />
+          <PrintButton filename={pdfFilename} />
           {sale.status !== "CANCELED" ? <Link href={proforma ? "/app/sales/" + sale.id : "/app/sales/" + sale.id + "?document=proforma"} className="inline-flex items-center gap-2 rounded-lg border bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50"><FileText className="h-4 w-4" /> {proforma ? "Ver comprobante" : "Generar factura"}</Link> : null}
           {sale.status !== "CANCELED" ? <SaleEmailButton proforma={proforma} customerEmail={customer?.email || null} customerName={customer?.name || "cliente"} companyName={issuer} saleNumber={String(sale.sale_number)} saleDate={saleDate} total={money(sale.total, currency)} amountPaid={money(sale.amount_paid, currency)} balance={money(sale.balance_due, currency)} nextPaymentDate={nextPaymentDate} /> : null}
           {canManage ? <details className="rounded-lg border bg-white px-4 py-2 text-sm"><summary className="cursor-pointer list-none font-medium">Editar fecha</summary><form action={updateSaleDateAction} className="mt-3 flex gap-2"><input type="hidden" name="sale_id" value={sale.id} /><input name="sale_date" type="date" defaultValue={String(sale.sold_at).slice(0,10)} required className="rounded-lg border px-3 py-2 text-sm" /><button className="rounded-lg bg-slate-900 px-3 py-2 font-medium text-white">Guardar</button></form></details> : null}
@@ -81,7 +85,7 @@ export default async function SaleDetailPage({
         </div>
       </div>
 
-      <p className="mb-4 text-xs text-slate-500 print:hidden">El correo se prepara en tu aplicación de email. Revisá el destinatario y adjuntá el PDF guardado con la opción de imprimir antes de enviarlo. La proforma no sustituye una factura tributaria.</p>
+      <p className="mb-4 text-xs text-slate-500 print:hidden">El correo se prepara en tu aplicación de email. Revisá el destinatario y adjuntá el PDF guardado con el botón «Guardar como PDF» antes de enviarlo. La proforma no sustituye una factura tributaria.</p>
       {messages.tracking_saved ? <div role="status" className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">Seguimiento actualizado correctamente.</div> : null}
       {messages.tracking_error ? <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">No se pudo actualizar el seguimiento. Para marcar un correo como enviado, escribí ENVIADO y verificá el destinatario. Para una factura externa, ingresá el número de factura.</div> : null}
       <section className="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm print:hidden">
@@ -135,7 +139,7 @@ export default async function SaleDetailPage({
             {!isAMStudio ? null : <div className="font-semibold text-neutral-900">{organization.name}</div>}
             <p className="mt-1 text-sm text-neutral-500">{branch?.name || "Sucursal"}{branch?.address ? ` · ${branch.address}` : ""}</p>
           </div>
-          <div className="shrink-0 text-right"><p className="text-xs uppercase tracking-wide text-neutral-500">{receiptTitle}</p><p className="mt-1 font-mono text-2xl font-semibold">#{sale.sale_number}</p><p className="mt-1 text-sm text-neutral-500">{saleDate}</p></div>
+          <div className="shrink-0 text-right"><p className="text-xs uppercase tracking-wide text-neutral-500">{receiptTitle}</p><p className="mt-1 font-mono text-xl font-semibold">{documentCode}</p><p className="mt-1 text-xs text-neutral-500">Venta #{sale.sale_number}</p><p className="mt-1 text-sm text-neutral-500">{saleDate}</p></div>
         </header>
 
         <div className="mb-6 grid grid-cols-2 gap-4">
