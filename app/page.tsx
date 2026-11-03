@@ -30,8 +30,8 @@ const plans = [
   },
   {
     name: "BASIC",
-    monthly: "Gs. 69.000",
-    annual: "Gs. 690.000/año",
+    monthly: "Gs. 50.000",
+    annual: "Gs. 500.000/año",
     description: "Para emprendimientos que ya necesitan controlar toda su operación comercial.",
     highlighted: false,
     features: [
@@ -46,8 +46,8 @@ const plans = [
   },
   {
     name: "PRO",
-    monthly: "Gs. 129.000",
-    annual: "Gs. 1.290.000/año",
+    monthly: "Gs. 80.000",
+    annual: "Gs. 800.000/año",
     description: "Para negocios en crecimiento que necesitan más control, usuarios y trazabilidad.",
     highlighted: true,
     features: [
@@ -62,8 +62,8 @@ const plans = [
   },
   {
     name: "BUSINESS",
-    monthly: "Gs. 229.000",
-    annual: "Gs. 2.290.000/año",
+    monthly: "Gs. 120.000",
+    annual: "Gs. 1.200.000/año",
     description: "Para empresas con varios equipos, sucursales o necesidades de administración más amplias.",
     highlighted: false,
     features: [
