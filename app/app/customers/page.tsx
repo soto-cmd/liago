@@ -31,7 +31,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
             <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-blue-700"><Users className="h-4 w-4" /> Contactos</div>
             <h1 className="text-3xl font-extrabold tracking-tight text-slate-950">Clientes</h1>
             <p className="mt-2 text-sm text-slate-500">Datos de contacto, crédito y cuenta corriente de cada cliente.</p>
-            <Link href="/app/subscriptions" className="mt-3 inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100">Gestionar Google One y suscripciones digitales</Link>
+            <Link href="/app/subscriptions" className="mt-3 inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100">Servicios recurrentes y suscripciones</Link>
           </div>
           <details className="liago-card w-full p-4 lg:max-w-xl">
             <summary className="flex cursor-pointer list-none items-center justify-between font-bold text-slate-900"><span className="flex items-center gap-2"><Plus className="h-4 w-4 text-blue-600" /> Agregar cliente</span><span className="text-xs font-medium text-slate-400">Abrir formulario</span></summary>
