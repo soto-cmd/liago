@@ -26,13 +26,13 @@ export default async function DashboardPage() {
   const todayIso = today.toISOString();
 
   const [
-    { data: sales },
-    { data: payments },
-    { data: debts },
-    { data: stock },
-    { data: expenses },
-    { count: customerCount },
-    { count: productCount },
+    salesResult,
+    paymentsResult,
+    debtsResult,
+    stockResult,
+    expensesResult,
+    customersResult,
+    productsResult,
   ] = await Promise.all([
     supabase.from("sales").select("total,status").eq("organization_id", organizationId).gte("sold_at", todayIso).eq("status", "CONFIRMED"),
     supabase.from("payments").select("amount,status").eq("organization_id", organizationId).gte("paid_at", todayIso).eq("status", "CONFIRMED"),
@@ -42,6 +42,15 @@ export default async function DashboardPage() {
     supabase.from("customers").select("id", { count: "exact", head: true }).eq("organization_id", organizationId).is("deleted_at", null),
     supabase.from("products").select("id", { count: "exact", head: true }).eq("organization_id", organizationId).is("deleted_at", null),
   ]);
+
+  const { data: sales } = salesResult;
+  const { data: payments } = paymentsResult;
+  const { data: debts } = debtsResult;
+  const { data: stock } = stockResult;
+  const { data: expenses } = expensesResult;
+  const { count: customerCount } = customersResult;
+  const { count: productCount } = productsResult;
+  const loadError = [salesResult,paymentsResult,debtsResult,stockResult,expensesResult,customersResult,productsResult].some(result => Boolean(result.error));
 
   const salesToday = sales?.reduce((sum, item) => sum + Number(item.total), 0) ?? 0;
   const collectedToday = payments?.reduce((sum, item) => sum + Number(item.amount), 0) ?? 0;
@@ -53,10 +62,10 @@ export default async function DashboardPage() {
   }).length ?? 0;
 
   const cards = [
-    { title: "Ventas de hoy", value: money(salesToday), helper: `${sales?.length ?? 0} operaciones`, icon: ShoppingCart, tone: "bg-emerald-50 text-emerald-700" },
-    { title: "Cobrado hoy", value: money(collectedToday), helper: `${payments?.length ?? 0} cobros`, icon: WalletCards, tone: "bg-blue-50 text-blue-700" },
-    { title: "Por cobrar", value: money(debtTotal), helper: `${debts?.length ?? 0} saldos pendientes`, icon: HandCoins, tone: "bg-amber-50 text-amber-700" },
-    { title: "Gastos de hoy", value: money(expensesToday), helper: `${expenses?.length ?? 0} movimientos`, icon: ReceiptText, tone: "bg-rose-50 text-rose-700" },
+    { title: "Ventas de hoy", value: salesResult.error ? "—" : money(salesToday), helper: `${sales?.length ?? 0} operaciones`, icon: ShoppingCart, tone: "bg-emerald-50 text-emerald-700" },
+    { title: "Cobrado hoy", value: paymentsResult.error ? "—" : money(collectedToday), helper: `${payments?.length ?? 0} cobros`, icon: WalletCards, tone: "bg-blue-50 text-blue-700" },
+    { title: "Por cobrar", value: debtsResult.error ? "—" : money(debtTotal), helper: `${debts?.length ?? 0} saldos pendientes`, icon: HandCoins, tone: "bg-amber-50 text-amber-700" },
+    { title: "Gastos de hoy", value: expensesResult.error ? "—" : money(expensesToday), helper: `${expenses?.length ?? 0} movimientos`, icon: ReceiptText, tone: "bg-rose-50 text-rose-700" },
   ];
 
   const quickActions = [
@@ -81,6 +90,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
+        {loadError ? <p role="alert" className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">No se pudo cargar parte del resumen. Los indicadores sin información se muestran con un guion.</p> : null}
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {cards.map(({ title, value, helper, icon: Icon, tone }) => (
             <div key={title} className="liago-card p-5">
@@ -115,9 +125,9 @@ export default async function DashboardPage() {
               <div className={`grid h-11 w-11 place-items-center rounded-2xl ${lowStock > 0 ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>{lowStock > 0 ? <AlertTriangle className="h-5 w-5" /> : <Boxes className="h-5 w-5" />}</div>
             </div>
             <div className="mt-6 grid grid-cols-3 gap-3">
-              <div className="rounded-2xl bg-slate-50 p-4"><div className="text-2xl font-extrabold text-slate-950">{productCount ?? 0}</div><div className="mt-1 text-xs text-slate-500">Productos</div></div>
-              <div className="rounded-2xl bg-slate-50 p-4"><div className="text-2xl font-extrabold text-slate-950">{customerCount ?? 0}</div><div className="mt-1 text-xs text-slate-500">Clientes</div></div>
-              <div className="rounded-2xl bg-slate-50 p-4"><div className="text-2xl font-extrabold text-slate-950">{lowStock}</div><div className="mt-1 text-xs text-slate-500">Stock bajo</div></div>
+              <div className="rounded-2xl bg-slate-50 p-4"><div className="text-2xl font-extrabold text-slate-950">{productsResult.error ? "—" : productCount ?? 0}</div><div className="mt-1 text-xs text-slate-500">Productos</div></div>
+              <div className="rounded-2xl bg-slate-50 p-4"><div className="text-2xl font-extrabold text-slate-950">{customersResult.error ? "—" : customerCount ?? 0}</div><div className="mt-1 text-xs text-slate-500">Clientes</div></div>
+              <div className="rounded-2xl bg-slate-50 p-4"><div className="text-2xl font-extrabold text-slate-950">{stockResult.error ? "—" : lowStock}</div><div className="mt-1 text-xs text-slate-500">Stock bajo</div></div>
             </div>
             <Link href="/app/inventory" className="mt-5 flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50">Ver inventario completo <ArrowRight className="h-4 w-4" /></Link>
           </section>
