@@ -32,7 +32,7 @@ export default async function SubscriptionsPage({searchParams}:{searchParams: Pr
   const outstanding=active.filter(s=>s.next_unpaid_period);
   return <div className="mx-auto max-w-7xl space-y-5 p-4 md:p-8">
     <div className="flex flex-wrap items-start justify-between gap-3">
-      <div><p className="flex items-center gap-2 text-sm font-bold text-blue-700"><Cloud className="h-4 w-4"/> Servicios digitales administrados</p><h1 className="mt-1 text-2xl font-extrabold text-slate-950">Suscripciones Google One</h1><p className="mt-1 text-sm text-slate-600">Planes, correos administrados y renovaciones por cliente. Sin contraseñas ni cargos automáticos.</p></div>
+      <div><p className="flex items-center gap-2 text-sm font-bold text-blue-700"><Cloud className="h-4 w-4"/> Servicios recurrentes y suscripciones</p><h1 className="mt-1 text-2xl font-extrabold text-slate-950">Gestión de suscripciones</h1><p className="mt-1 text-sm text-slate-600">Seguimiento de renovaciones y pagos por cliente. Por ahora, el formulario disponible registra cuentas Google One; otros servicios se incorporarán posteriormente. Sin contraseñas ni cargos automáticos.</p></div>
       <Link className="rounded-lg border px-4 py-2 text-sm font-semibold hover:bg-slate-50" href="/app/customers">Ver clientes</Link>
     </div>
     {params.saved ? <p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">Suscripción guardada. No se registraron cobros ni facturas.</p> : null}
@@ -83,7 +83,7 @@ export default async function SubscriptionsPage({searchParams}:{searchParams: Pr
       })}
     </div>
     {canManage ? <details className="rounded-xl border bg-white p-4">
-      <summary className="cursor-pointer text-sm font-bold text-blue-700">Agregar otra cuenta administrada</summary>
+      <summary className="cursor-pointer text-sm font-bold text-blue-700">Agregar cuenta Google One</summary>
       <p className="mt-2 text-xs text-slate-600">Primero creá la ficha del cliente si todavía no existe. No se almacenan contraseñas ni se genera ningún cargo.</p>
       <form action={saveManagedSubscriptionAction} className="mt-4 grid gap-3 sm:grid-cols-2">
         <label className="text-xs font-semibold sm:col-span-2">Cliente<select name="customer_id" required className="mt-1 w-full rounded-lg border bg-white p-2 text-sm"><option value="">Elegir cliente</option>{customers?.map(c=><option value={c.id} key={c.id}>{c.name}</option>)}</select></label>
@@ -98,9 +98,9 @@ export default async function SubscriptionsPage({searchParams}:{searchParams: Pr
         <label className="text-xs font-semibold">Fecha pago confirmado<input name="last_confirmed_payment_date" type="date" className="mt-1 w-full rounded-lg border p-2 text-sm"/></label>
         <label className="text-xs font-semibold sm:col-span-2">Período pendiente (AAAA-MM)<input name="next_unpaid_period" className="mt-1 w-full rounded-lg border p-2 text-sm"/></label>
         <label className="text-xs font-semibold sm:col-span-2">Notas<textarea name="notes" rows={2} className="mt-1 w-full rounded-lg border p-2 text-sm"/></label>
-        <button type="submit" className="rounded-lg bg-blue-700 p-3 font-bold text-white sm:col-span-2">Guardar cuenta administrada</button>
+        <button type="submit" className="rounded-lg bg-blue-700 p-3 font-bold text-white sm:col-span-2">Guardar cuenta Google One</button>
       </form>
     </details> : null}
-    <p className="flex items-center gap-2 text-xs text-slate-500"><CheckCircle2 className="h-4 w-4"/> Este control es administrativo. La suscripción a Google One y los movimientos bancarios siguen siendo gestionados fuera de Liago.</p>
+    <p className="flex items-center gap-2 text-xs text-slate-500"><CheckCircle2 className="h-4 w-4"/> Este módulo registra y controla administrativamente cuentas Google One. No contrata servicios ni procesa pagos bancarios automáticamente.</p>
   </div>;
 }
