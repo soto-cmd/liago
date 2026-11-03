@@ -18,7 +18,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
     .order("name");
 
   if (q) query = query.or(`name.ilike.%${q}%,customer_code.ilike.%${q}%,tax_id.ilike.%${q}%,phone.ilike.%${q}%,whatsapp.ilike.%${q}%`);
-  const { data: customers } = await query;
+  const { data: customers, error: customersError } = await query;
   const categorize = (notes: string | null) => notes?.startsWith("Alumno activo") ? "students" : notes?.startsWith("Cliente de servicio recurrente") ? "recurring" : "casual";
   const visibleCustomers = category === "all" ? customers : (customers ?? []).filter((customer) => categorize(customer.notes) === category);
   const activeStudentCount = (customers ?? []).filter((customer) => categorize(customer.notes) === "students").length;
@@ -57,6 +57,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
         {params.created ? <div className="mb-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">Cliente guardado correctamente.</div> : null}
         {params.error ? <div className="mb-4 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-semibold text-red-700">No se pudo guardar el cliente.</div> : null}
 
+        {customersError ? <p role="alert" className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">No se pudo consultar la base de clientes. Volvé a intentarlo; no se modificaron los datos.</p> : null}
         <div className="liago-card mb-5 p-4">
           <form className="flex flex-col gap-3 sm:flex-row">
             <div className="relative flex-1"><Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input name="q" defaultValue={q} placeholder="Buscar por nombre, código, RUC o teléfono" className="liago-input pl-11" /></div>
@@ -66,12 +67,12 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
         </div>
 
         <div className="liago-card overflow-hidden">
-          <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4"><div><div className="font-bold text-slate-950">Base de clientes</div><div className="mt-1 text-xs text-slate-500">{visibleCustomers?.length ?? 0} registros visibles · {activeStudentCount} alumnos activos</div></div></div>
+          <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4"><div><div className="font-bold text-slate-950">Base de clientes</div><div className="mt-1 text-xs text-slate-500">{customersError ? "Datos no disponibles" : `${visibleCustomers?.length ?? 0} registros visibles · ${activeStudentCount} alumnos activos`}</div></div></div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[850px] text-left text-sm">
               <thead className="bg-slate-50/80 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-5 py-4">Cliente</th><th className="px-5 py-4">Código</th><th className="px-5 py-4">Documento</th><th className="px-5 py-4">Contacto</th><th className="px-5 py-4">Crédito</th><th className="px-5 py-4">Estado</th><th className="px-5 py-4">Acciones</th></tr></thead>
               <tbody className="divide-y divide-slate-100">
-                {visibleCustomers?.length ? visibleCustomers.map((customer) => (
+                {customersError ? <tr><td colSpan={7} className="px-5 py-14 text-center text-sm font-semibold text-red-700">No se pudo cargar la lista de clientes.</td></tr> : visibleCustomers?.length ? visibleCustomers.map((customer) => (
                   <tr key={customer.id} className="hover:bg-slate-50/70">
                     <td className="px-5 py-4"><div className="flex items-center gap-3"><div className={`grid h-10 w-10 place-items-center rounded-xl ${customer.customer_type === "COMPANY" ? "bg-violet-50 text-violet-700" : "bg-blue-50 text-blue-700"}`}>{customer.customer_type === "COMPANY" ? <Building2 className="h-5 w-5" /> : <UserRound className="h-5 w-5" />}</div><div><div className="font-bold text-slate-900">{customer.name}</div><div className="text-xs text-slate-500">{customer.customer_type === "COMPANY" ? "Empresa" : "Persona"}{customer.city ? ` · ${customer.city}` : ""}</div><div className="mt-1 text-xs font-semibold text-blue-700">{categorize(customer.notes) === "students" ? "Alumno activo" : categorize(customer.notes) === "recurring" ? "Servicio recurrente" : "Cliente ocasional"}</div></div></div></td>
                     <td className="px-5 py-4"><span className="rounded-lg bg-slate-100 px-2.5 py-1.5 font-mono text-xs font-bold text-slate-700">{customer.customer_code || "—"}</span></td>
@@ -81,7 +82,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
                     <td className="px-5 py-4"><span className={`rounded-full px-2.5 py-1 text-xs font-bold ${customer.status === "ACTIVE" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>{customer.status === "ACTIVE" ? "Activo" : customer.status === "INACTIVE" ? "Inactivo" : "Bloqueado"}</span></td>
                     <td className="px-5 py-4"><Link href={`/app/customers/${customer.id}`} className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 hover:bg-blue-100">{canEdit ? <Pencil className="h-3.5 w-3.5" /> : null}{canEdit ? "Editar / gestionar" : "Ver ficha"}</Link></td>
                   </tr>
-                )) : <tr><td colSpan={7} className="px-5 py-16 text-center"><Users className="mx-auto h-10 w-10 text-slate-300" /><div className="mt-3 font-bold text-slate-700">Todavía no hay clientes</div><div className="mt-1 text-sm text-slate-400">Agregá el primero para comenzar.</div></td></tr>}
+                )) : <tr><td colSpan={7} className="px-5 py-16 text-center"><Users className="mx-auto h-10 w-10 text-slate-300" /><div className="mt-3 font-bold text-slate-700">Todavía no hay clientes</div><div className="mt-1 text-sm text-slate-500">{q || category !== "all" ? "No hay coincidencias. Probá limpiar la búsqueda o cambiar los filtros." : "Esta empresa todavía no tiene clientes. Usá «Agregar cliente» para crear el primero."}</div>{q || category !== "all" ? <Link href="/app/customers" className="mt-3 inline-flex rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-bold text-blue-700 hover:bg-blue-100">Limpiar filtros</Link> : null}</td></tr>}
               </tbody>
             </table>
           </div>
