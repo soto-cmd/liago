@@ -135,37 +135,106 @@ export default async function SaleDetailPage({
       {messages.canceled ? <div className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800 print:hidden">Venta anulada y movimientos revertidos.</div> : null}
       {messages.error ? <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 print:hidden">No se pudo completar la operación: {String(messages.error)}</div> : null}
 
-      <article className="mx-auto max-w-4xl rounded-2xl border border-slate-200 bg-white p-7 text-slate-900 shadow-sm md:p-10 print:m-0 print:w-full print:max-w-none print:rounded-none print:border-0 print:p-0 print:text-[10pt] print:shadow-none">
-        <header className="mb-7 flex items-start justify-between gap-6 border-b-2 border-slate-900 pb-6 print:mb-5 print:pb-4">
-          <div className="min-w-0">
-            {isAMStudio ? <img src="/am-estudio-logo.svg" alt="A&M Estudio Fotográfico" className="mb-2 h-auto w-56 max-w-full" /> : <div className="flex items-center gap-2 text-2xl font-bold tracking-tight text-slate-950 print:text-xl"><ReceiptText className="h-5 w-5 print:hidden" /> {issuer}</div>}
-            {!isAMStudio ? null : <div className="font-semibold text-neutral-900">{organization.name}</div>}
-            <p className="mt-2 text-xs text-slate-500">{branch?.name || "Sucursal"}{branch?.address ? ` · ${branch.address}` : ""}</p>
-          </div>
-          <div className="shrink-0 text-right"><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500">{receiptTitle}</p><p className="mt-2 font-mono text-xl font-bold tracking-tight text-slate-950">{documentCode}</p><p className="mt-1 text-xs text-slate-500">Emitido: {saleDate}</p><p className="mt-1 text-[11px] text-slate-400">Venta #{sale.sale_number}</p></div>
-        </header>
 
-        <div className="mb-6 grid grid-cols-2 gap-5 rounded-xl border border-slate-200 bg-slate-50/70 p-5 print:mb-4 print:p-4">
-          <div><p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Cliente</p><p className="mt-2 text-base font-semibold text-slate-950">{customer?.name || "Consumidor final"}</p>{customer?.tax_id ? <p className="text-sm text-neutral-600">RUC/Documento: {customer.tax_id}</p> : null}{customer?.whatsapp || customer?.phone ? <p className="text-sm text-neutral-600">Contacto: {customer.whatsapp || customer.phone}</p> : null}{customer?.address ? <p className="text-sm text-neutral-600">Dirección: {customer.address}</p> : null}</div>
-          <div className="text-right"><p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Condición</p><p className="mt-1 font-medium">{saleTypeLabels[sale.sale_type] || sale.sale_type}</p><p className="text-sm text-neutral-600">Pago: {paymentStatusLabels[sale.payment_status] || sale.payment_status}</p>{sale.due_date ? <p className="text-sm text-neutral-600">Vence: {new Date(`${sale.due_date}T00:00:00`).toLocaleDateString("es-PY")}</p> : null}</div>
+      <style>{`@media print { @page { size: A4 portrait; margin: 12mm; } .liago-invoice { print-color-adjust: exact; -webkit-print-color-adjust: exact; } .liago-invoice section, .liago-invoice footer, .liago-invoice tr { break-inside: avoid; } }`}</style>
+      <article className="liago-invoice mx-auto max-w-4xl overflow-hidden rounded-xl border border-emerald-100 bg-white text-slate-900 shadow-lg print:m-0 print:w-full print:max-w-none print:rounded-none print:border-0 print:shadow-none">
+        <div className="h-3 bg-emerald-700 print:h-2" />
+        <div className="px-7 pb-7 pt-8 sm:px-10 print:px-0 print:pb-0 print:pt-5">
+          <header className="mb-8 flex flex-wrap items-start justify-between gap-7 print:mb-6">
+            <div className="min-w-0 flex-1">
+              {isAMStudio ? <img src="/am-estudio-logo.svg" alt="A&M Estudio Fotográfico" className="mb-3 h-auto w-52 max-w-full" /> : <div className="text-2xl font-extrabold tracking-tight text-slate-950">{issuer}</div>}
+              {isAMStudio ? <div className="text-sm font-semibold text-slate-900">{organization.name}</div> : null}
+              <p className="mt-2 text-xs leading-relaxed text-slate-500">{branch?.name || "Casa central"}{branch?.address ? ` · ${branch.address}` : ""}</p>
+            </div>
+            <div className="min-w-[185px] text-right">
+              <p className="text-2xl font-black uppercase tracking-[0.12em] text-emerald-800 print:text-xl">{proforma ? "PROFORMA" : "COMPROBANTE"}</p>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-wide text-slate-500">{receiptTitle}</p>
+              <p className="mt-3 font-mono text-lg font-bold text-slate-900">{documentCode}</p>
+            </div>
+          </header>
+
+          <div className="mb-7 h-px bg-emerald-200 print:mb-5" />
+
+          <section className="mb-7 grid grid-cols-1 gap-6 sm:grid-cols-2 print:mb-5 print:grid-cols-2">
+            <div>
+              <h2 className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-emerald-700">Facturado a</h2>
+              <p className="text-base font-bold text-slate-950">{customer?.name || "Consumidor final"}</p>
+              {customer?.tax_id ? <p className="mt-1 text-xs text-slate-600">RUC / Documento: {customer.tax_id}</p> : null}
+              {customer?.address ? <p className="mt-1 text-xs text-slate-600">{customer.address}</p> : null}
+              {customer?.phone || customer?.whatsapp ? <p className="mt-1 text-xs text-slate-600">{customer?.whatsapp || customer?.phone}</p> : null}
+              {customer?.email ? <p className="mt-1 break-all text-xs text-slate-600">{customer.email}</p> : null}
+            </div>
+            <div className="rounded-lg border border-emerald-100 bg-emerald-50/50 p-4 print:p-3">
+              <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-xs">
+                <span className="font-semibold text-slate-500">Fecha</span><span className="text-right font-medium">{saleDate}</span>
+                <span className="font-semibold text-slate-500">N.º de venta</span><span className="text-right font-medium">#{sale.sale_number}</span>
+                <span className="font-semibold text-slate-500">Condición</span><span className="text-right font-medium">{saleTypeLabels[sale.sale_type] || sale.sale_type}</span>
+                <span className="font-semibold text-slate-500">Pago</span><span className="text-right font-bold text-emerald-800">{paymentStatusLabels[sale.payment_status] || sale.payment_status}</span>
+                {sale.due_date ? <><span className="font-semibold text-slate-500">Vencimiento</span><span className="text-right font-medium">{new Date(`${sale.due_date}T00:00:00`).toLocaleDateString("es-PY")}</span></> : null}
+              </div>
+            </div>
+          </section>
+
+          {recurringMonthly ? <section className="mb-7 flex items-center justify-between gap-4 rounded-lg border-l-4 border-emerald-700 bg-emerald-50 px-5 py-3 print:mb-5">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">Próxima fecha de pago</p>
+              <p className="mt-0.5 text-xs text-slate-600">Servicio recurrente</p>
+            </div>
+            <strong className="text-xl tabular-nums text-emerald-900">{nextPaymentDate || "Por configurar"}</strong>
+          </section> : null}
+
+          <section className="mb-6 print:mb-5">
+            <div className="overflow-x-auto print:overflow-visible">
+              <table className="w-full table-fixed border-collapse text-left text-xs">
+                <thead className="bg-emerald-700 text-white">
+                  <tr>
+                    <th className="w-[18%] px-3 py-3 font-semibold print:px-2">Código</th>
+                    <th className="w-[33%] px-3 py-3 font-semibold print:px-2">Descripción</th>
+                    <th className="w-[8%] px-2 py-3 text-right font-semibold">Cant.</th>
+                    <th className="w-[16%] px-2 py-3 text-right font-semibold">Precio</th>
+                    <th className="w-[9%] px-2 py-3 text-right font-semibold">Desc.</th>
+                    <th className="w-[16%] px-3 py-3 text-right font-semibold print:px-2">Importe</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {items?.map(item => <tr key={item.id} className="even:bg-slate-50/60">
+                    <td className="break-all px-3 py-3 font-mono text-[10px] text-slate-600 print:px-2">{item.item_code || "—"}</td>
+                    <td className="px-3 py-3 font-medium print:px-2">{item.description}</td>
+                    <td className="px-2 py-3 text-right tabular-nums">{Number(item.quantity).toLocaleString("es-PY")}</td>
+                    <td className="px-2 py-3 text-right tabular-nums">{money(item.unit_price, currency)}</td>
+                    <td className="px-2 py-3 text-right tabular-nums">{Number(item.discount).toLocaleString("es-PY")}</td>
+                    <td className="px-3 py-3 text-right font-semibold tabular-nums print:px-2">{money(item.line_total, currency)}</td>
+                  </tr>)}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className="mb-7 flex justify-end print:mb-5">
+            <div className="w-full max-w-sm border-t-2 border-emerald-700 pt-3 text-sm">
+              <div className="flex justify-between gap-4 py-1"><span className="text-slate-500">Subtotal</span><span className="tabular-nums">{money(sale.subtotal, currency)}</span></div>
+              {Number(sale.discount_total) > 0 ? <div className="flex justify-between gap-4 py-1"><span className="text-slate-500">Descuentos</span><span className="tabular-nums">-{money(sale.discount_total, currency)}</span></div> : null}
+              {Number(sale.tax_total) > 0 ? <div className="flex justify-between gap-4 py-1"><span className="text-slate-500">Impuestos</span><span className="tabular-nums">{money(sale.tax_total, currency)}</span></div> : null}
+              <div className="mt-2 flex justify-between gap-4 bg-emerald-50 px-3 py-3 text-base font-extrabold text-emerald-900"><span>TOTAL</span><span className="tabular-nums">{money(sale.total, currency)}</span></div>
+              <div className="flex justify-between gap-4 px-3 py-2 text-xs"><span className="text-slate-500">Cobrado</span><span className="tabular-nums">{money(sale.amount_paid, currency)}</span></div>
+              <div className="flex justify-between gap-4 border-t border-slate-200 px-3 py-2 text-xs font-bold"><span>Saldo pendiente</span><span className="tabular-nums">{money(sale.balance_due, currency)}</span></div>
+            </div>
+          </section>
+
+          {payments?.length ? <section className="mb-6 rounded-lg border border-slate-200 px-4 py-3 print:mb-4">
+            <h2 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-emerald-800">Detalle del pago</h2>
+            <div className="space-y-2 text-xs">{payments.map(p => <div key={p.id} className="flex items-center justify-between gap-4"><span>#{p.payment_number} · {paymentMethodLabels[p.payment_method] || p.payment_method} · {recordStatusLabels[p.status] || p.status}</span><span className="whitespace-nowrap font-semibold tabular-nums">{money(p.amount,currency)}</span></div>)}</div>
+          </section> : null}
+          {debt ? <section className="mb-4 flex justify-between gap-4 border-b border-slate-100 pb-3 text-xs"><span>Deuda asociada · {paymentStatusLabels[debt.status] || debt.status}</span><span className="font-semibold">Saldo {money(debt.balance,currency)}</span></section> : null}
+          {sale.notes ? <section className="mb-4 text-xs text-slate-600"><span className="font-bold text-slate-800">Notas:</span> {sale.notes}</section> : null}
+          {sale.status === "CANCELED" ? <div className="mb-5 border-2 border-red-500 p-3 text-center font-bold uppercase text-red-700">VENTA ANULADA</div> : null}
+
+          <footer className="mt-7 border-t border-emerald-200 pt-5 print:mt-5 print:pt-3">
+            <p className="text-[10px] font-semibold leading-relaxed text-slate-500">{proforma ? "DOCUMENTO PROFORMA · SIN VALIDEZ TRIBUTARIA. No sustituye una factura electrónica ni constituye comprobante fiscal." : "Comprobante interno · No constituye una factura tributaria."}</p>
+            {isAMStudio ? <p className="mt-2 text-xs font-medium text-emerald-800">Gracias por confiar en A&M Estudio Fotográfico.</p> : null}
+            <div className="mt-4 h-1 w-16 rounded-full bg-emerald-700 print:mt-3" />
+          </footer>
         </div>
-
-        {recurringMonthly ? <section className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-blue-100 bg-blue-50 px-5 py-4 print:mb-4 print:py-3">
-          <p className="text-xs font-bold uppercase tracking-wide text-blue-700">Próxima fecha de pago</p>
-          <p className="mt-1 text-xl font-bold tabular-nums text-blue-950">{nextPaymentDate ?? "Pendiente de configurar"}</p>
-          {!nextPaymentDate ? <p className="mt-1 text-xs text-blue-700 print:hidden">Agregá el día de vencimiento mensual en la ficha del cliente para mostrar la fecha automáticamente.</p> : null}
-        </section> : null}
-
-        <div className="overflow-hidden rounded-xl border border-slate-200 print:rounded-none"><table className="w-full table-fixed text-left text-sm print:text-xs"><thead className="border-b border-slate-200 bg-slate-100 text-[11px] font-semibold uppercase tracking-wide text-slate-600"><tr><th className="w-[18%] px-3 py-2">Código</th><th className="w-[32%] px-3 py-2">Detalle</th><th className="w-[10%] px-3 py-2 text-right">Cant.</th><th className="w-[15%] px-3 py-2 text-right">Precio</th><th className="w-[10%] px-3 py-2 text-right">Desc.</th><th className="w-[15%] px-3 py-2 text-right">Total</th></tr></thead><tbody className="divide-y divide-slate-100">{items?.map((item) => <tr key={item.id}><td className="break-all px-3 py-4 font-mono text-[11px] text-slate-500">{item.item_code || "—"}</td><td className="px-3 py-3">{item.description}</td><td className="px-3 py-3 text-right">{Number(item.quantity).toLocaleString("es-PY")}</td><td className="px-3 py-3 text-right">{money(item.unit_price, currency)}</td><td className="px-3 py-3 text-right">{Number(item.discount).toLocaleString("es-PY")}</td><td className="px-3 py-4 text-right font-semibold tabular-nums text-slate-900">{money(item.line_total, currency)}</td></tr>)}</tbody></table></div>
-
-        <div className="mt-6 ml-auto max-w-sm space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-5 text-sm print:mt-4 print:p-4"><div className="flex justify-between"><span>Subtotal</span><span>{money(sale.subtotal, currency)}</span></div>{Number(sale.discount_total) > 0 ? <div className="flex justify-between"><span>Descuentos</span><span>-{money(sale.discount_total, currency)}</span></div> : null}{Number(sale.tax_total) > 0 ? <div className="flex justify-between"><span>Impuestos</span><span>{money(sale.tax_total, currency)}</span></div> : null}<div className="flex justify-between items-center border-t border-slate-300 pt-3 text-lg font-bold text-slate-950"><span>Total</span><span>{money(sale.total, currency)}</span></div><div className="flex justify-between"><span>Cobrado</span><span>{money(sale.amount_paid, currency)}</span></div><div className="flex justify-between border-t border-slate-200 pt-2 font-semibold text-slate-900"><span>Saldo</span><span>{money(sale.balance_due, currency)}</span></div></div>
-
-        {payments?.length ? <section className="mt-6 rounded-xl border border-slate-200 p-5 print:mt-4 print:p-4"><h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-600">Detalle del pago</h2><div className="space-y-1 text-sm">{payments.map((p) => <div key={p.id} className="flex justify-between gap-4"><span>#{p.payment_number} · {paymentMethodLabels[p.payment_method] || p.payment_method} · {recordStatusLabels[p.status] || p.status}</span><span>{money(p.amount, currency)}</span></div>)}</div></section> : null}
-        {debt ? <section className="mt-4 border-t pt-4 text-sm"><div className="flex justify-between"><span>Deuda asociada · {paymentStatusLabels[debt.status] || debt.status}</span><span className="font-semibold">Saldo {money(debt.balance, currency)}</span></div></section> : null}
-        {sale.notes ? <section className="mt-4 border-t pt-4 text-sm"><span className="font-medium">Notas:</span> {sale.notes}</section> : null}
-        {sale.status === "CANCELED" ? <div className="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-center font-semibold text-red-700">VENTA ANULADA</div> : null}
-        {proforma ? <footer className="mt-7 border-t border-slate-200 pt-4 text-center text-[10px] font-semibold leading-relaxed text-slate-500">DOCUMENTO PROFORMA · SIN VALIDEZ TRIBUTARIA. No sustituye una factura electrónica ni constituye comprobante fiscal.</footer> : <footer className="mt-7 border-t border-slate-200 pt-4 text-center text-[10px] leading-relaxed text-slate-500">Este comprobante interno no constituye una factura tributaria.</footer>}
-        {isAMStudio ? <footer className="mt-8 border-t pt-4 text-center text-xs text-neutral-500">Gracias por confiar en A&M Estudio Fotográfico.</footer> : null}
       </article>
     </div>
   );
