@@ -126,7 +126,11 @@ export default async function SaleDetailPage({
             <input name="email_reference" maxLength={255} defaultValue={tracking?.email_reference || ""} placeholder="Referencia del correo (opcional)" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"/>
             <p className="text-xs text-slate-500">Para confirmar que realmente se envió, seleccioná Enviado y escribí ENVIADO.</p>
             <input name="confirm_sent" aria-label="Confirmar correo enviado" placeholder="ENVIADO (solo para marcar enviado)" autoComplete="off" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"/>
-            <button type="submit" className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800">Guardar correo</button>
+            <div className="flex flex-wrap items-center gap-3">
+              <button type="submit" className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800">Guardar correo</button>
+              <SaleEmailButton proforma={proforma} customerEmail={tracking?.email_recipient || customer?.email || null} customerName={customer?.name || "cliente"} companyName={issuer} saleNumber={String(sale.sale_number)} saleDate={saleDate} total={money(sale.total, currency)} amountPaid={money(sale.amount_paid, currency)} balance={money(sale.balance_due, currency)} nextPaymentDate={nextPaymentDate} />
+            </div>
+            <p className="text-xs text-slate-500">Gmail se abre con el mensaje preparado, sin enviarlo. Adjuntá manualmente el archivo {pdfFilename}. Si modificás el destinatario arriba, guardá el cambio antes de preparar el correo.</p>
           </form>
         </div> : null}
       </section>
