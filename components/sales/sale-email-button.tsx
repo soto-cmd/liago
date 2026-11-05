@@ -34,16 +34,22 @@ export function SaleEmailButton({
     "Te compartimos el comprobante correspondiente para tu referencia.",
     proforma ? "Este documento es una proforma y no constituye una factura tributaria." : "Este documento es un comprobante interno y no constituye una factura tributaria.",
     "",
-    "Antes de enviar este correo, adjuntá el PDF del comprobante guardado desde Liago.",
-    "",
     "Muchas gracias por confiar en nosotros.",
     companyName,
   ].join("\n");
-  const href = `mailto:${encodeURIComponent(customerEmail || "")}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  // Gmail compose works without OAuth, Gmail API calls, or additional server usage.
+  // The link cannot attach local PDFs or establish that a message was sent.
+  const gmailUrl = new URL("https://mail.google.com/mail/u/0/");
+  gmailUrl.searchParams.set("view", "cm");
+  gmailUrl.searchParams.set("fs", "1");
+  if (customerEmail?.trim()) gmailUrl.searchParams.set("to", customerEmail.trim());
+  gmailUrl.searchParams.set("su", subject);
+  gmailUrl.searchParams.set("body", body);
+  const href = gmailUrl.toString();
 
   return (
-    <a href={href} className="inline-flex items-center gap-2 rounded-lg border bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
-      <Mail className="h-4 w-4" /> Preparar correo
+    <a href={href} target="_blank" rel="noopener noreferrer" aria-label="Preparar correo en Gmail (se abre en una pestaña nueva)" className="inline-flex items-center gap-2 rounded-lg border bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+      <Mail className="h-4 w-4" /> Preparar correo en Gmail
     </a>
   );
 }
