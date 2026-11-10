@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { createQuotationAction } from "@/app/app/quotations/actions";
 import { Plus, Trash2, Search } from "lucide-react";
 import { QuotationChoice } from "@/components/quotations/quotation-choice";
+import { QuotationIncludesSelect } from "@/components/quotations/quotation-includes-select";
 
 type Customer={id:string;name:string;customer_code:string|null;phone:string|null;whatsapp:string|null};
 type Product={id:string;name:string;description:string|null;sale_price:number;item_type:string};
@@ -74,7 +75,7 @@ export function NewQuotationForm({customers,products,currency,locations,previous
    </section>
    <section className="rounded-xl border bg-white p-4">
      <h3 className="mb-3 font-bold text-slate-900">3. Incluye y condiciones de pago</h3>
-     <QuotationChoice name="included_services" label="El servicio incluye" multiline maxLength={2500} options={[...previousChoices.includes,"Fotos digitales por WhatsApp\nFotos digitales por Google Drive","Fotos digitales por Google Drive","Fotos digitales por WhatsApp"]}/>
+     <QuotationIncludesSelect previousValues={previousChoices.includes} photographyOnly={photographyOnly}/>
      <div className="mt-3 grid gap-3 md:grid-cols-2">
        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm"><p className="font-semibold text-slate-700">Adelanto automático · 50 %</p><p className="mt-1 text-xl font-bold tabular-nums text-slate-950">{money(deposit,currency)}</p><p className="mt-1 text-xs text-slate-500">Se calcula en tiempo real según el total cotizado.</p></div>
        <div className="rounded-lg bg-amber-50 p-3 text-sm"><div className="flex justify-between"><span>Adelanto (50 %)</span><strong>{money(deposit,currency)}</strong></div><div className="mt-1 flex justify-between"><span>Saldo estimado</span><strong>{money(total-deposit,currency)}</strong></div></div>
