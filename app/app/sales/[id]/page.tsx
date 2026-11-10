@@ -33,7 +33,7 @@ export default async function SaleDetailPage({
   const canManage = ["OWNER", "ADMIN", "MANAGER"].includes(role);
   const canDelete = ["OWNER", "ADMIN"].includes(role);
 
-  const [{ data: sale }, { data: items }, { data: debt }, { data: payments }, { data: tracking }] = await Promise.all([
+  const [{ data: sale }, { data: items }, { data: debt }, { data: payments }, { data: tracking }, { data: sourceQuotation }] = await Promise.all([
     supabase
       .from("sales")
       .select("id,sale_number,sale_type,status,payment_status,sold_at,due_date,subtotal,discount_total,tax_total,total,amount_paid,balance_due,payment_method,reference,notes,customers(id,name,tax_id,phone,whatsapp,email,address,next_payment_day),branches(id,name,address)")
@@ -44,6 +44,7 @@ export default async function SaleDetailPage({
     supabase.from("debts").select("id,original_amount,balance,status,due_date").eq("organization_id", organizationId).eq("sale_id", id).maybeSingle(),
     supabase.from("payments").select("id,payment_number,paid_at,amount,payment_method,status,reference").eq("organization_id", organizationId).eq("sale_id", id).order("paid_at", { ascending: true }),
     supabase.from("sale_document_tracking").select("document_status,document_recorded_at,external_invoice_number,email_status,email_recipient,email_sent_at,email_reference").eq("organization_id", organizationId).eq("sale_id", id).maybeSingle(),
+    supabase.from("quotations").select("id,number").eq("organization_id", organizationId).eq("sale_id", id).maybeSingle(),
   ]);
 
   if (!sale) notFound();
@@ -134,6 +135,7 @@ export default async function SaleDetailPage({
           </form>
         </div> : null}
       </section>
+      {sourceQuotation ? <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm print:hidden"><span>Comprobante generado desde cotización N° <strong>{String(sourceQuotation.number).padStart(4,"0")}</strong></span><Link href={"/app/quotations/"+sourceQuotation.id} className="font-bold text-blue-700 underline underline-offset-2">Ver cotización original</Link></div> : null}
       {messages.created ? <div className="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700 print:hidden">Venta confirmada correctamente.</div> : null}
       {messages.date_updated ? <div className="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700 print:hidden">Fecha actualizada correctamente.</div> : null}
       {messages.canceled ? <div className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800 print:hidden">Venta anulada y movimientos revertidos.</div> : null}
