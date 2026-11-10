@@ -7,10 +7,12 @@ type Customer={id:string;name:string;customer_code:string|null;phone:string|null
 type Product={id:string;name:string;description:string|null;sale_price:number;item_type:string};
 type Item={key:number;product_id:string;description:string;quantity:number;unit_price:number};
 const money=(n:number,c:string)=>new Intl.NumberFormat("es-PY",{maximumFractionDigits:2}).format(n)+" "+c;
-export function NewQuotationForm({customers,products,currency}:{customers:Customer[];products:Product[];currency:string}){
+export function NewQuotationForm({customers,products,currency,locations}:{customers:Customer[];products:Product[];currency:string;locations:string[]}){
  const [customerSearch,setCustomerSearch]=useState("");
  const [customerId,setCustomerId]=useState("");
  const [serviceSearch,setServiceSearch]=useState("");
+ const [eventLocation,setEventLocation]=useState("");
+ const [newLocation,setNewLocation]=useState("");
  const [selected,setSelected]=useState("");
  const [items,setItems]=useState<Item[]>([]);
  const [depositPercent,setDepositPercent]=useState("50");
@@ -22,7 +24,8 @@ export function NewQuotationForm({customers,products,currency}:{customers:Custom
  const total=items.reduce((s,i)=>s+Math.round(i.quantity*i.unit_price*100)/100,0);
  const percent=Number(depositPercent);
  const deposit=depositMode==="percent"?Math.round(total*Math.max(0,Math.min(100,Number.isFinite(percent)?percent:0))/100*100)/100:Number(fixedDeposit);
- const valid=!!customerId&&items.length>0&&total>0&&Number.isFinite(deposit)&&deposit>=0&&deposit<=total&&items.every(i=>i.description.trim().length>0&&i.quantity>0&&i.unit_price>=0&&Number.isFinite(i.unit_price));
+ const locationValue=eventLocation==="__new__"?newLocation.trim():eventLocation;
+ const valid=!!customerId&&(eventLocation!=="__new__"||newLocation.trim().length>0)&&items.length>0&&total>0&&Number.isFinite(deposit)&&deposit>=0&&deposit<=total&&items.every(i=>i.description.trim().length>0&&i.quantity>0&&i.unit_price>=0&&Number.isFinite(i.unit_price));
  function add(){
   const p=products.find(p=>p.id===selected);if(!p)return;
   setItems(a=>[...a,{key:Date.now()+Math.random(),product_id:p.id,description:p.name+(p.description?"\n"+p.description:""),quantity:1,unit_price:Number(p.sale_price)||0}]);setSelected("");
@@ -37,7 +40,20 @@ export function NewQuotationForm({customers,products,currency}:{customers:Custom
       <label className="text-sm font-medium">Evento o trabajo<input name="event_name" maxLength={160} className="liago-input mt-1" placeholder="Ej. Evento institucional"/></label>
       <label className="text-sm font-medium">Fecha<input type="date" name="event_date" className="liago-input mt-1"/></label>
       <label className="text-sm font-medium">Horario<input name="event_time" maxLength={100} className="liago-input mt-1" placeholder="Ej. 19:00 a 21:00 hs"/></label>
-      <label className="text-sm font-medium">Ciudad o lugar<input name="event_location" maxLength={250} className="liago-input mt-1" placeholder="Ej. San Fernando"/></label>
+      <div className="text-sm font-medium">
+       <label htmlFor="quote-location">Ciudad o lugar</label>
+       <select id="quote-location" className="liago-input mt-1" value={eventLocation} onChange={e=>{setEventLocation(e.target.value);if(e.target.value!=="__new__")setNewLocation("");}}>
+         <option value="">Seleccionar ciudad o lugar</option>
+         {locations.map(name=><option key={name} value={name}>{name}</option>)}
+         <option value="__new__">+ Agregar nuevo lugar</option>
+       </select>
+       {eventLocation==="__new__"?
+         <div className="mt-2"><label htmlFor="new-quote-location" className="text-xs font-semibold text-slate-600">Nombre del nuevo lugar</label>
+           <input id="new-quote-location" className="liago-input mt-1" maxLength={250} required value={newLocation} onChange={e=>setNewLocation(e.target.value)} placeholder="Ej. San Fernando o Salón Municipal"/>
+           <p className="mt-1 text-xs text-slate-500">Se guardará para próximas cotizaciones al guardar este documento.</p>
+         </div>:null}
+       <input type="hidden" name="event_location" value={locationValue}/>
+     </div>
      </div>
    </section>
    <section className="rounded-xl border bg-white p-4">
