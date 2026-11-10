@@ -15,13 +15,18 @@ export async function createQuotationAction(formData: FormData) {
   const deposit = Number(formData.get("deposit") || 0);
   if (!Number.isFinite(deposit) || deposit < 0) redirect("/app/quotations?error=deposit");
   const date = String(formData.get("event_date") || "");
-  const { data, error } = await supabase.rpc("create_quotation", {
+  const { data, error } = await supabase.rpc("create_quotation_detailed", {
     p_organization_id: organizationId, p_customer_id: customerId, p_items: items,
     p_event_name: String(formData.get("event_name") || "").trim() || null,
     p_event_date: date || null,
     p_event_location: String(formData.get("event_location") || "").trim() || null,
     p_notes: String(formData.get("notes") || "").trim() || null,
     p_deposit: deposit,
+    p_event_time: String(formData.get("event_time") || "").trim() || null,
+    p_included_services: String(formData.get("included_services") || "").trim() || null,
+    p_payment_terms: String(formData.get("payment_terms") || "").trim() || null,
+    p_payment_methods: String(formData.get("payment_methods") || "").trim() || null,
+    p_bank_details: String(formData.get("bank_details") || "").trim() || null,
   });
   if (error || !data) {
     console.error("create_quotation:", error?.code, error?.message);
