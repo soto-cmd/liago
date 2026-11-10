@@ -229,7 +229,7 @@ export default async function SaleDetailPage({
 
           {payments?.length ? <section className="mb-6 rounded-lg border border-slate-200 px-4 py-3 print:mb-4">
             <h2 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-emerald-800">Detalle del pago</h2>
-            <div className="space-y-2 text-xs">{payments.map(p => <div key={p.id} className="flex items-center justify-between gap-4"><span>#{p.payment_number} · {paymentMethodLabels[p.payment_method] || p.payment_method} · {recordStatusLabels[p.status] || p.status}</span><span className="whitespace-nowrap font-semibold tabular-nums">{money(p.amount,currency)}</span></div>)}</div>
+            <div className="space-y-2 text-xs">{payments.map(p => <div key={p.id} className="flex items-center justify-between gap-4"><span><Link href={"/app/payments/"+p.id} className="font-bold text-blue-700 underline underline-offset-2 print:no-underline">REC-{String(p.payment_number).padStart(6,"0")}</Link> · {paymentMethodLabels[p.payment_method] || p.payment_method} · {recordStatusLabels[p.status] || p.status}</span><span className="whitespace-nowrap font-semibold tabular-nums">{money(p.amount,currency)}</span></div>)}</div>
           </section> : null}
           {debt ? <section className="mb-4 flex justify-between gap-4 border-b border-slate-100 pb-3 text-xs"><span>Deuda asociada · {paymentStatusLabels[debt.status] || debt.status}</span><span className="font-semibold">Saldo {money(debt.balance,currency)}</span></section> : null}
           {sale.notes ? <section className="mb-4 text-xs text-slate-600"><span className="font-bold text-slate-800">Notas:</span> {sale.notes}</section> : null}
