@@ -10,6 +10,7 @@ import {
   LogOut,
   Package,
   ReceiptText,
+  FileText,
   Settings,
   ShieldCheck,
   ShoppingCart,
@@ -32,6 +33,7 @@ const sections = [
     items: [
       ["Inicio", "/app", LayoutDashboard],
       ["Ventas", "/app/sales", ShoppingCart],
+      ["Cotizaciones", "/app/quotations", FileText],
       ["Productos", "/app/products", Package],
       ["Tienda online", "/app/online-store", Store],
       ["Servicios", "/app/services", Wrench],
