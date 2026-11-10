@@ -9,7 +9,7 @@ type Product={id:string;name:string;description:string|null;sale_price:number;it
 type Item={key:number;product_id:string;description:string;quantity:number;unit_price:number|null};
 const money=(n:number,c:string)=>new Intl.NumberFormat("es-PY",{maximumFractionDigits:2}).format(n)+" "+c;
 type PreviousChoices={events:string[];times:string[];includes:string[];terms:string[];methods:string[];banks:string[]};
-export function NewQuotationForm({customers,products,currency,locations,previousChoices}:{customers:Customer[];products:Product[];currency:string;locations:string[];previousChoices:PreviousChoices}){
+export function NewQuotationForm({customers,products,currency,locations,previousChoices,photographyOnly=false}:{customers:Customer[];products:Product[];currency:string;locations:string[];previousChoices:PreviousChoices;photographyOnly?:boolean}){
  const [customerSearch,setCustomerSearch]=useState("");
  const [customerId,setCustomerId]=useState("");
  const [serviceSearch,setServiceSearch]=useState("");
@@ -57,8 +57,8 @@ export function NewQuotationForm({customers,products,currency,locations,previous
    <section className="rounded-xl border bg-white p-4">
      <h3 className="mb-3 font-bold text-slate-900">2. Servicios e importes</h3>
      <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
-       <input className="liago-input" value={serviceSearch} onChange={e=>setServiceSearch(e.target.value)} placeholder="Filtrar servicios"/>
-       <select className="liago-input" value={selected} onChange={e=>setSelected(e.target.value)}><option value="">Elegir servicio o producto</option>{catalog.map(p=><option key={p.id} value={p.id}>{p.item_type==="SERVICE"?"Servicio":"Producto"} · {p.name}</option>)}</select>
+       <input className="liago-input" value={serviceSearch} onChange={e=>setServiceSearch(e.target.value)} placeholder={photographyOnly?"Buscar servicio fotográfico":"Filtrar servicios"}/>
+       <select className="liago-input" value={selected} onChange={e=>setSelected(e.target.value)}><option value="">{photographyOnly?"Elegir servicio fotográfico":"Elegir servicio o producto"}</option>{catalog.map(p=><option key={p.id} value={p.id}>{photographyOnly?p.name:(p.item_type==="SERVICE"?"Servicio":"Producto")+" · "+p.name}</option>)}</select>
        <button type="button" disabled={!selected} className="liago-btn-secondary" onClick={add}><Plus className="h-4 w-4"/> Agregar</button>
      </div>
      <p className="mt-2 text-xs text-slate-500">Ingresá manualmente el precio de cada servicio. El cálculo del total y del 50 % de adelanto se actualizará automáticamente.</p>
