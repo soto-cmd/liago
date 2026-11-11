@@ -25,3 +25,27 @@ export async function cancelPaymentAction(formData: FormData) {
   revalidatePath("/app");
   redirect("/app/payments?canceled=1");
 }
+
+export async function updatePaymentDocumentAction(formData: FormData) {
+  const {supabase,organizationId,role}=await requireActiveOrganization();
+  const id=String(formData.get("payment_id")||"");
+  if (!["OWNER","ADMIN","MANAGER"].includes(role) || !/^[0-9a-f-]{36}$/i.test(id))
+    redirect("/app/payments?error=not_allowed");
+  const paidDate=String(formData.get("paid_date")||"");
+  const reference=String(formData.get("reference")||"").trim();
+  const notes=String(formData.get("notes")||"").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(paidDate) || reference.length>250 || notes.length>2000)
+    redirect("/app/payments/"+id+"?error=invalid");
+  const {error}=await supabase.rpc("update_payment_document",{
+    p_organization_id:organizationId,p_payment_id:id,
+    p_paid_at:paidDate+"T12:00:00-03:00",p_reference:reference||null,p_notes:notes||null
+  });
+  if(error) {
+    console.error("update_payment_document",error.code,error.message);
+    redirect("/app/payments/"+id+"?error=update");
+  }
+  revalidatePath("/app/payments");
+  revalidatePath("/app/payments/"+id);
+  revalidatePath("/app/reports");
+  redirect("/app/payments/"+id+"?updated=1");
+}
