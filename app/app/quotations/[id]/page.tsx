@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PrintButton } from "@/components/common/print-button";
+import { ExportJpgButton } from "@/components/common/export-jpg-button";
 import { QuotationReceiptForm } from "@/components/quotations/quotation-receipt-form";
 import { acceptQuotationAction } from "./actions";
 import { requireActiveOrganization } from "@/lib/organizations/active-organization";
@@ -28,14 +29,14 @@ export default async function QuotationDetail({params,searchParams}:{params:Prom
  const code="COT-"+new Date(q.issued_at).getFullYear()+"-"+String(q.number).padStart(6,"0");
  const filename="Cotizacion-"+q.number+"_"+(customer?.name||"Cliente").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9]+/g,"-")+".pdf";
  return <div className="mx-auto max-w-5xl space-y-4 p-4 md:p-8 print:max-w-none print:p-0">
-  <div className="flex flex-wrap items-center justify-between gap-3 print:hidden"><Link className="liago-btn-secondary" href="/app/quotations">Volver a cotizaciones</Link><PrintButton filename={filename}/></div>
+  <div className="flex flex-wrap items-center justify-between gap-3 print:hidden"><Link className="liago-btn-secondary" href="/app/quotations">Volver a cotizaciones</Link><div className="flex flex-wrap gap-2"><PrintButton filename={filename}/><ExportJpgButton filename={filename} targetId="quotation-document"/></div></div>
   {messages.accepted?<p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800 print:hidden">Cotización aceptada. Ya podés registrar el cobro.</p>:null}
   {messages.error?<p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800 print:hidden">No se pudo completar la operación. No se registró un cobro nuevo.</p>:null}
   {q.sale_id?<div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm print:hidden"><strong>Cotización convertida.</strong> El cobro y los recibos están asociados a la operación. <Link href={"/app/sales/"+q.sale_id} className="ml-2 font-bold text-blue-700 underline">Ver comprobante y pagos</Link></div>:null}
   {canWrite && !q.sale_id && ["DRAFT","SENT"].includes(q.status)?<form action={acceptQuotationAction} className="rounded-xl border bg-white p-4 print:hidden"><input type="hidden" name="quotation_id" value={q.id}/><p className="mb-3 text-sm text-slate-600">Confirmá la aceptación del cliente. Esto no registra ningún cobro.</p><button className="liago-btn-primary">Marcar como aceptada</button></form>:null}
   {canWrite && q.status==="ACCEPTED" && !q.sale_id?<QuotationReceiptForm quotationId={q.id} total={Number(q.total)} suggestedDeposit={Number(q.deposit)} currency={q.currency||organization.currency||"PYG"} branches={branches||[]}/>:null}
   <style>{`@media print { @page { size:A4 portrait; margin:13mm; } .quote-sheet, .quote-sheet tr, .quote-sheet section { break-inside:avoid; } .quote-sheet {-webkit-print-color-adjust:exact;print-color-adjust:exact;} }`}</style>
-  <article className="quote-sheet mx-auto max-w-4xl rounded-xl border border-slate-200 bg-white p-6 text-slate-950 shadow-sm sm:p-9 print:max-w-none print:rounded-none print:border-none print:p-0 print:shadow-none">
+  <article id="quotation-document" className="quote-sheet mx-auto max-w-4xl rounded-xl border border-slate-200 bg-white p-6 text-slate-950 shadow-sm sm:p-9 print:max-w-none print:rounded-none print:border-none print:p-0 print:shadow-none">
    <header className="flex items-start justify-between gap-4">
     <div><h1 className="text-xl font-extrabold">{company?.name||organization.name}</h1><p className="mt-1 text-xs text-slate-600">{company?.phone?"Tel. "+company.phone:""}</p><p className="text-xs text-slate-600">{[company?.address,company?.city].filter(Boolean).join(", ")}</p><p className="text-xs text-slate-600">{company?.email||""}</p></div>
     {logo?<img src={logo} alt="Logo de la empresa" className="h-16 w-auto max-w-36 object-contain"/>:null}
