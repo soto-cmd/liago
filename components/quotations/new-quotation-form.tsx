@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { createQuotationAction } from "@/app/app/quotations/actions";
+import { createQuotationAction, updateQuotationAction } from "@/app/app/quotations/actions";
 import { Plus, Trash2, Search } from "lucide-react";
 import { QuotationChoice } from "@/components/quotations/quotation-choice";
 import { QuotationIncludesSelect } from "@/components/quotations/quotation-includes-select";
@@ -8,16 +8,17 @@ import { QuotationIncludesSelect } from "@/components/quotations/quotation-inclu
 type Customer={id:string;name:string;customer_code:string|null;phone:string|null;whatsapp:string|null};
 type Product={id:string;name:string;description:string|null;sale_price:number;item_type:string};
 type Item={key:number;product_id:string;description:string;quantity:number;unit_price:number|null};
+export type QuotationInitial={id:string;customer_id:string;event_name:string|null;event_date:string|null;event_time:string|null;event_location:string|null;included_services:string|null;payment_terms:string|null;payment_methods:string|null;bank_details:string|null;notes:string|null;items:Array<{product_id:string|null;description:string;quantity:number;unit_price:number}>};
 const money=(n:number,c:string)=>new Intl.NumberFormat("es-PY",{maximumFractionDigits:2}).format(n)+" "+c;
 type PreviousChoices={events:string[];times:string[];includes:string[];terms:string[];methods:string[];banks:string[]};
-export function NewQuotationForm({customers,products,currency,locations,previousChoices,photographyOnly=false}:{customers:Customer[];products:Product[];currency:string;locations:string[];previousChoices:PreviousChoices;photographyOnly?:boolean}){
+export function NewQuotationForm({customers,products,currency,locations,previousChoices,photographyOnly=false,initial}:{customers:Customer[];products:Product[];currency:string;locations:string[];previousChoices:PreviousChoices;photographyOnly?:boolean;initial?:QuotationInitial}){
  const [customerSearch,setCustomerSearch]=useState("");
- const [customerId,setCustomerId]=useState("");
+ const [customerId,setCustomerId]=useState(initial?.customer_id||"");
  const [serviceSearch,setServiceSearch]=useState("");
- const [eventLocation,setEventLocation]=useState("");
+ const [eventLocation,setEventLocation]=useState(initial?.event_location||"");
  const [newLocation,setNewLocation]=useState("");
  const [selected,setSelected]=useState("");
- const [items,setItems]=useState<Item[]>([]);
+ const [items,setItems]=useState<Item[]>((initial?.items||[]).map((i,k)=>({...i,product_id:i.product_id||"",key:k+1})));
  const [pending,setPending]=useState(false);
  const clients=useMemo(()=>customers.filter(c=>(c.name+" "+(c.customer_code||"")+" "+(c.whatsapp||"")+" "+(c.phone||"")).toLocaleLowerCase().includes(customerSearch.toLocaleLowerCase())),[customers,customerSearch]);
  const catalog=useMemo(()=>products.filter(p=>(p.name+" "+(p.description||"")).toLocaleLowerCase().includes(serviceSearch.toLocaleLowerCase())).sort((a,b)=>(a.item_type==="SERVICE"?0:1)-(b.item_type==="SERVICE"?0:1)||a.name.localeCompare(b.name)),[products,serviceSearch]);
@@ -30,15 +31,16 @@ export function NewQuotationForm({customers,products,currency,locations,previous
   setItems(a=>[...a,{key:Date.now()+Math.random(),product_id:p.id,description:p.name+(p.description?"\n"+p.description:""),quantity:1,unit_price:null}]);setSelected("");
  }
  function edit(key:number,changes:Partial<Item>){setItems(a=>a.map(i=>i.key===key?{...i,...changes}:i));}
- return <form action={createQuotationAction} onSubmit={()=>setPending(true)} className="space-y-5">
+ return <form action={initial?updateQuotationAction:createQuotationAction} onSubmit={()=>setPending(true)} className="space-y-5">
+   {initial?<input type="hidden" name="quotation_id" value={initial.id}/>:null}
    <section className="rounded-xl border bg-white p-4">
-     <div className="mb-3 flex items-center justify-between"><h3 className="font-bold text-slate-900">1. Cliente y evento</h3><span className="text-xs text-slate-500">Numeración automática al guardar</span></div>
+     <div className="mb-3 flex items-center justify-between"><h3 className="font-bold text-slate-900">1. Cliente y evento</h3><span className="text-xs text-slate-500">{initial?"Se conserva el número original":"Numeración automática al guardar"}</span></div>
      <div className="grid gap-3 md:grid-cols-2">
       <label className="text-sm font-medium">Buscar cliente<div className="relative mt-1"><Search className="absolute left-3 top-3 h-4 w-4 text-slate-400"/><input className="liago-input pl-9" value={customerSearch} onChange={e=>setCustomerSearch(e.target.value)} placeholder="Nombre o teléfono"/></div></label>
       <label className="text-sm font-medium">Cliente *<select name="customer_id" required className="liago-input mt-1" value={customerId} onChange={e=>setCustomerId(e.target.value)}><option value="">Seleccionar cliente existente</option>{clients.map(c=><option value={c.id} key={c.id}>{c.name}{c.customer_code?" · "+c.customer_code:""}</option>)}</select></label>
-      <QuotationChoice name="event_name" label="Evento o trabajo" maxLength={160} options={[...previousChoices.events,"Evento institucional","Cumpleaños infantil","Cumpleaños de adulto","15 años","Boda","Bautismo","Graduación","Sesión fotográfica","Evento empresarial"]}/>
-      <label className="text-sm font-medium">Fecha<input type="date" name="event_date" className="liago-input mt-1"/></label>
-      <QuotationChoice name="event_time" label="Horario" maxLength={100} options={[...previousChoices.times,"08:00 a 10:00 hs","10:00 a 12:00 hs","14:00 a 16:00 hs","16:00 a 18:00 hs","18:00 a 20:00 hs","19:00 a 21:00 hs","20:00 a 22:00 hs","A confirmar"]}/>
+      <QuotationChoice name="event_name" initialValue={initial?.event_name||""} label="Evento o trabajo" maxLength={160} options={[...previousChoices.events,"Evento institucional","Cumpleaños infantil","Cumpleaños de adulto","15 años","Boda","Bautismo","Graduación","Sesión fotográfica","Evento empresarial"]}/>
+      <label className="text-sm font-medium">Fecha<input type="date" name="event_date" defaultValue={initial?.event_date||""} className="liago-input mt-1"/></label>
+      <QuotationChoice name="event_time" initialValue={initial?.event_time||""} label="Horario" maxLength={100} options={[...previousChoices.times,"08:00 a 10:00 hs","10:00 a 12:00 hs","14:00 a 16:00 hs","16:00 a 18:00 hs","18:00 a 20:00 hs","19:00 a 21:00 hs","20:00 a 22:00 hs","A confirmar"]}/>
       <div className="text-sm font-medium">
        <label htmlFor="quote-location">Ciudad o lugar</label>
        <select id="quote-location" className="liago-input mt-1" value={eventLocation} onChange={e=>{setEventLocation(e.target.value);if(e.target.value!=="__new__")setNewLocation("");}}>
@@ -75,18 +77,18 @@ export function NewQuotationForm({customers,products,currency,locations,previous
    </section>
    <section className="rounded-xl border bg-white p-4">
      <h3 className="mb-3 font-bold text-slate-900">3. Incluye y condiciones de pago</h3>
-     <QuotationIncludesSelect previousValues={previousChoices.includes} photographyOnly={photographyOnly}/>
+     <QuotationIncludesSelect initialValue={initial?.included_services||""} previousValues={previousChoices.includes} photographyOnly={photographyOnly}/>
      <div className="mt-3 grid gap-3 md:grid-cols-2">
        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm"><p className="font-semibold text-slate-700">Adelanto automático · 50 %</p><p className="mt-1 text-xl font-bold tabular-nums text-slate-950">{money(deposit,currency)}</p><p className="mt-1 text-xs text-slate-500">Se calcula en tiempo real según el total cotizado.</p></div>
        <div className="rounded-lg bg-amber-50 p-3 text-sm"><div className="flex justify-between"><span>Adelanto (50 %)</span><strong>{money(deposit,currency)}</strong></div><div className="mt-1 flex justify-between"><span>Saldo estimado</span><strong>{money(total-deposit,currency)}</strong></div></div>
-       <div className="md:col-span-2"><QuotationChoice name="payment_terms" label="Condición del anticipo y saldo" multiline maxLength={1000} options={[...previousChoices.terms,"50% de anticipo para reservar la fecha y 50% restante al finalizar la cobertura.","Pago total al finalizar el servicio.","Pago total por adelantado."]}/></div>
-       <QuotationChoice name="payment_methods" label="Formas de pago" maxLength={500} options={[...previousChoices.methods,"Transferencia bancaria o efectivo.","Transferencia bancaria","Efectivo","Tarjeta"]}/>
-       <QuotationChoice name="bank_details" label="Datos de transferencia (opcional)" maxLength={700} options={previousChoices.banks}/>
+       <div className="md:col-span-2"><QuotationChoice name="payment_terms" initialValue={initial?.payment_terms||""} label="Condición del anticipo y saldo" multiline maxLength={1000} options={[...previousChoices.terms,"50% de anticipo para reservar la fecha y 50% restante al finalizar la cobertura.","Pago total al finalizar el servicio.","Pago total por adelantado."]}/></div>
+       <QuotationChoice name="payment_methods" initialValue={initial?.payment_methods||""} label="Formas de pago" maxLength={500} options={[...previousChoices.methods,"Transferencia bancaria o efectivo.","Transferencia bancaria","Efectivo","Tarjeta"]}/>
+       <QuotationChoice name="bank_details" initialValue={initial?.bank_details||""} label="Datos de transferencia (opcional)" maxLength={700} options={previousChoices.banks}/>
      </div>
-     <label className="mt-3 block text-sm font-medium">Otras observaciones<textarea name="notes" maxLength={2000} rows={2} className="liago-input mt-1" placeholder="Entregables, vigencia, aclaraciones..."/></label>
+     <label className="mt-3 block text-sm font-medium">Otras observaciones<textarea name="notes" defaultValue={initial?.notes||""} maxLength={2000} rows={2} className="liago-input mt-1" placeholder="Entregables, vigencia, aclaraciones..."/></label>
    </section>
    <input type="hidden" name="deposit" value={deposit}/>
    <input type="hidden" name="items_json" value={JSON.stringify(items.map(({product_id,description,quantity,unit_price})=>({product_id,description,quantity,unit_price})))}/>
-   <div className="sticky bottom-2 flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-white p-3 shadow-lg"><div className="text-sm"><div className="text-slate-500">Total cotizado</div><strong>{money(total,currency)}</strong>{!valid?<p className="text-xs text-amber-700">Seleccioná un cliente e ingresá manualmente el precio de cada servicio.</p>:null}</div><button type="submit" disabled={!valid||pending} className="liago-btn-primary disabled:opacity-50">{pending?"Guardando...":"Guardar cotización"}</button></div>
+   <div className="sticky bottom-2 flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-white p-3 shadow-lg"><div className="text-sm"><div className="text-slate-500">Total cotizado</div><strong>{money(total,currency)}</strong>{!valid?<p className="text-xs text-amber-700">Seleccioná un cliente e ingresá manualmente el precio de cada servicio.</p>:null}</div><button type="submit" disabled={!valid||pending} className="liago-btn-primary disabled:opacity-50">{pending?"Guardando...":initial?"Actualizar cotización":"Guardar cotización"}</button></div>
  </form>;
 }
