@@ -88,3 +88,32 @@ revoke all on function public.update_quotation_detailed(uuid,uuid,uuid,jsonb,tex
 grant execute on function public.update_quotation_detailed(uuid,uuid,uuid,jsonb,text,date,text,text,numeric,text,text,text,text,text) to authenticated;
 revoke all on function public.remove_quotation(uuid,uuid,boolean) from public,anon;
 grant execute on function public.remove_quotation(uuid,uuid,boolean) to authenticated;
+
+-- Edición segura de datos documentales del recibo; importes y asignaciones no se alteran.
+create or replace function public.update_payment_document(
+ p_organization_id uuid, p_payment_id uuid, p_paid_at timestamptz,
+ p_reference text default null, p_notes text default null
+) returns uuid language plpgsql security definer set search_path='' as $$
+declare v_payment public.payments%rowtype;
+begin
+ if auth.uid() is null or not exists (
+  select 1 from public.organization_members where organization_id=p_organization_id
+   and user_id=auth.uid() and status='ACTIVE' and deleted_at is null
+   and role in ('OWNER','ADMIN','MANAGER')
+ ) then raise exception 'Sin permisos'; end if;
+ select * into v_payment from public.payments where id=p_payment_id and organization_id=p_organization_id for update;
+ if not found then raise exception 'Recibo no encontrado'; end if;
+ if v_payment.status<>'CONFIRMED' then raise exception 'No se puede editar un recibo anulado'; end if;
+ if p_paid_at is null or length(coalesce(p_reference,''))>250 or length(coalesce(p_notes,''))>2000
+ then raise exception 'Datos del recibo inválidos'; end if;
+ update public.payments
+ set paid_at=p_paid_at,reference=nullif(trim(p_reference),''),notes=nullif(trim(p_notes),'')
+ where id=p_payment_id and organization_id=p_organization_id;
+ insert into public.audit_logs(organization_id,actor_user_id,action,module,record_id,old_data,new_data)
+ values (p_organization_id,auth.uid(),'UPDATE','PAYMENTS',p_payment_id::text,
+  jsonb_build_object('paid_at',v_payment.paid_at,'reference',v_payment.reference,'notes',v_payment.notes),
+  jsonb_build_object('paid_at',p_paid_at,'reference',nullif(trim(p_reference),''),'notes',nullif(trim(p_notes),'')));
+ return p_payment_id;
+end $$;
+revoke all on function public.update_payment_document(uuid,uuid,timestamptz,text,text) from public,anon;
+grant execute on function public.update_payment_document(uuid,uuid,timestamptz,text,text) to authenticated;
