@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Ban, FileText, ReceiptText, Trash2 } from "lucide-react";
 import { requireActiveOrganization } from "@/lib/organizations/active-organization";
 import { PrintButton } from "@/components/common/print-button";
+import { ExportJpgButton } from "@/components/common/export-jpg-button";
 import { nextMonthlyPaymentDate } from "@/lib/billing/next-payment-date";
 import { SaleEmailButton } from "@/components/sales/sale-email-button";
 import { setSaleDocumentStatusAction, setSaleEmailStatusAction } from "./tracking-actions";
@@ -80,6 +81,7 @@ export default async function SaleDetailPage({
         <Link href="/app/sales" className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-950"><ArrowLeft className="h-4 w-4" /> Volver a ventas</Link>
         <div className="flex flex-wrap gap-2">
           <PrintButton filename={pdfFilename} />
+          <ExportJpgButton filename={pdfFilename} targetId="sale-document" />
           {sale.status !== "CANCELED" ? <Link href={proforma ? "/app/sales/" + sale.id : "/app/sales/" + sale.id + "?document=proforma"} className="inline-flex items-center gap-2 rounded-lg border bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50"><FileText className="h-4 w-4" /> {proforma ? "Ver comprobante" : "Generar factura"}</Link> : null}
           {sale.status !== "CANCELED" ? <SaleEmailButton proforma={proforma} customerEmail={customer?.email || null} customerName={customer?.name || "cliente"} companyName={issuer} saleNumber={String(sale.sale_number)} saleDate={saleDate} total={money(sale.total, currency)} amountPaid={money(sale.amount_paid, currency)} balance={money(sale.balance_due, currency)} nextPaymentDate={nextPaymentDate} /> : null}
           {canManage ? <details className="rounded-lg border bg-white px-4 py-2 text-sm"><summary className="cursor-pointer list-none font-medium">Editar fecha</summary><form action={updateSaleDateAction} className="mt-3 flex gap-2"><input type="hidden" name="sale_id" value={sale.id} /><input name="sale_date" type="date" defaultValue={String(sale.sold_at).slice(0,10)} required className="rounded-lg border px-3 py-2 text-sm" /><button className="rounded-lg bg-slate-900 px-3 py-2 font-medium text-white">Guardar</button></form></details> : null}
@@ -143,7 +145,7 @@ export default async function SaleDetailPage({
 
 
       <style>{`@media print { @page { size: A4 portrait; margin: 12mm; } .liago-invoice { print-color-adjust: exact; -webkit-print-color-adjust: exact; } .liago-invoice section, .liago-invoice footer, .liago-invoice tr { break-inside: avoid; } }`}</style>
-      <article className="liago-invoice mx-auto max-w-4xl overflow-hidden rounded-xl border border-emerald-100 bg-white text-slate-900 shadow-lg print:m-0 print:w-full print:max-w-none print:rounded-none print:border-0 print:shadow-none">
+      <article id="sale-document" className="liago-invoice mx-auto max-w-4xl overflow-hidden rounded-xl border border-emerald-100 bg-white text-slate-900 shadow-lg print:m-0 print:w-full print:max-w-none print:rounded-none print:border-0 print:shadow-none">
         <div className="h-3 bg-emerald-700 print:h-2" />
         <div className="px-7 pb-7 pt-8 sm:px-10 print:px-0 print:pb-0 print:pt-5">
           <header className="mb-8 flex flex-wrap items-start justify-between gap-7 print:mb-6">
