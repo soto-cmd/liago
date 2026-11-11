@@ -2,11 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireActiveOrganization } from "@/lib/organizations/active-organization";
 import { PrintButton } from "@/components/common/print-button";
+import { cancelPaymentAction } from "@/app/app/payments/actions";
 import { ExportJpgButton } from "@/components/common/export-jpg-button";
 
 export default async function PaymentReceiptPage({params}:{params:Promise<{id:string}>}) {
   const {id}=await params;
-  const {supabase,organizationId,organization}=await requireActiveOrganization();
+  const {supabase,organizationId,organization,role}=await requireActiveOrganization();
   const [{data:payment},{data:company},{data:allocations}]=await Promise.all([
     supabase.from("payments").select("id,organization_id,payment_number,paid_at,amount,payment_method,reference,notes,status,sale_id,customer_id,customers(name,tax_id,phone,whatsapp,email,address),branches(name,address)").eq("organization_id",organizationId).eq("id",id).maybeSingle(),
     supabase.from("organizations").select("name,address,city,phone,email,logo_url,currency").eq("id",organizationId).maybeSingle(),
@@ -42,6 +43,15 @@ export default async function PaymentReceiptPage({params}:{params:Promise<{id:st
       {payment.notes?<p className="text-sm text-slate-700"><strong>Observaciones:</strong> {payment.notes}</p>:null}
       <div className="mt-9 border-t pt-4 text-xs text-slate-500">Comprobante interno de cobro, no es una factura tributaria. Documento asociado a un pago registrado en Liago.</div>
     </article>
-    <div className="flex flex-wrap gap-3 print:hidden">{saleId?<Link href={"/app/sales/"+saleId} className="liago-btn-secondary">Ver operación</Link>:null}{quotation?<Link href={"/app/quotations/"+quotation.id} className="liago-btn-secondary">Ver cotización</Link>:null}</div>
+    <div className="flex flex-wrap gap-3 print:hidden">{["OWNER","ADMIN","MANAGER"].includes(role)&&payment.status!=="CANCELED"?
+      <details className="rounded-lg border border-amber-200 p-3 text-sm">
+       <summary className="cursor-pointer font-semibold text-amber-800">Anular recibo</summary>
+       <form action={cancelPaymentAction} className="mt-3 space-y-2">
+        <input type="hidden" name="payment_id" value={payment.id}/>
+        <input name="reason" required maxLength={300} className="liago-input" placeholder="Motivo de anulación"/>
+        <button className="rounded-lg bg-red-700 px-4 py-2 font-semibold text-white">Confirmar anulación</button>
+       </form>
+       <p className="mt-2 text-xs text-slate-600">Se conserva el número del recibo y se revierten los saldos mediante el procedimiento de cobros existente.</p>
+      </details>:null}{saleId?<Link href={"/app/sales/"+saleId} className="liago-btn-secondary">Ver operación</Link>:null}{quotation?<Link href={"/app/quotations/"+quotation.id} className="liago-btn-secondary">Ver cotización</Link>:null}</div>
   </div>;
 }
