@@ -38,7 +38,7 @@ export async function updatePaymentDocumentAction(formData: FormData) {
     redirect("/app/payments/"+id+"?error=invalid");
   const {error}=await supabase.rpc("update_payment_document",{
     p_organization_id:organizationId,p_payment_id:id,
-    p_paid_at:paidDate+"T12:00:00-03:00",p_reference:reference||null,p_notes:notes||null
+    p_document_date:paidDate,p_reference:reference||null,p_notes:notes||null
   });
   if(error) {
     console.error("update_payment_document",error.code,error.message);
