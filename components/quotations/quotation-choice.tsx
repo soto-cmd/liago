@@ -2,13 +2,13 @@
 import { useState } from "react";
 
 export function QuotationChoice({
-  name,label,options,placeholder,maxLength=500,multiline=false,required=false
+  name,label,options,placeholder,maxLength=500,multiline=false,required=false,initialValue=""
 }:{
-  name:string;label:string;options:string[];placeholder?:string;maxLength?:number;multiline?:boolean;required?:boolean
+  name:string;label:string;options:string[];placeholder?:string;maxLength?:number;multiline?:boolean;required?:boolean;initialValue?:string
 }){
- const [choice,setChoice]=useState("");
+ const [choice,setChoice]=useState(initialValue);
  const [custom,setCustom]=useState("");
- const clean=[...new Map(options.map(s=>s.trim()).filter(Boolean).map(s=>[s.toLocaleLowerCase("es"),s])).values()].sort((a,b)=>a.localeCompare(b,"es"));
+ const clean=[...new Map([...options,initialValue].map(s=>s.trim()).filter(Boolean).map(s=>[s.toLocaleLowerCase("es"),s])).values()].sort((a,b)=>a.localeCompare(b,"es"));
  const value=choice==="__custom__"?custom:choice;
  return <div className="text-sm font-medium">
   <label htmlFor={"choice-"+name}>{label}</label>

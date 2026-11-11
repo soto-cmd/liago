@@ -35,3 +35,38 @@ export async function createQuotationAction(formData: FormData) {
   revalidatePath("/app/quotations");
   redirect("/app/quotations/"+data+"?created=1");
 }
+
+export async function updateQuotationAction(formData: FormData) {
+  const { supabase, organizationId, role } = await requireActiveOrganization();
+  const id = String(formData.get("quotation_id") || "");
+  if (!["OWNER","ADMIN","MANAGER","SELLER","CASHIER"].includes(role) || !/^[0-9a-f-]{36}$/i.test(id))
+    redirect("/app/quotations?error=permission");
+  let items: unknown;
+  try { items = JSON.parse(String(formData.get("items_json") || "[]")); }
+  catch { redirect("/app/quotations/"+id+"/edit?error=items"); }
+  const customerId = String(formData.get("customer_id") || "");
+  const deposit = Number(formData.get("deposit"));
+  if (!Array.isArray(items) || items.length<1 || items.length>60 || !/^[0-9a-f-]{36}$/i.test(customerId)
+      || !Number.isFinite(deposit) || deposit<0)
+    redirect("/app/quotations/"+id+"/edit?error=validation");
+  const { error } = await supabase.rpc("update_quotation_detailed", {
+    p_organization_id: organizationId, p_quotation_id: id,
+    p_customer_id: customerId, p_items: items, p_deposit: deposit,
+    p_event_name: String(formData.get("event_name")||"").trim()||null,
+    p_event_date: String(formData.get("event_date")||"")||null,
+    p_event_location: String(formData.get("event_location")||"").trim()||null,
+    p_event_time: String(formData.get("event_time")||"").trim()||null,
+    p_included_services: String(formData.get("included_services")||"").trim()||null,
+    p_payment_terms: String(formData.get("payment_terms")||"").trim()||null,
+    p_payment_methods: String(formData.get("payment_methods")||"").trim()||null,
+    p_bank_details: String(formData.get("bank_details")||"").trim()||null,
+    p_notes: String(formData.get("notes")||"").trim()||null,
+  });
+  if (error) {
+    console.error("update_quotation_detailed",error.code,error.message);
+    redirect("/app/quotations/"+id+"/edit?error=save");
+  }
+  revalidatePath("/app/quotations");
+  revalidatePath("/app/quotations/"+id);
+  redirect("/app/quotations/"+id+"?updated=1");
+}

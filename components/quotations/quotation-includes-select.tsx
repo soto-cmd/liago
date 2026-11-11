@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Check, Plus, X } from "lucide-react";
 
-type Props={previousValues:string[];photographyOnly?:boolean};
+type Props={previousValues:string[];photographyOnly?:boolean;initialValue?:string};
 const photographyOptions=[
  "Fotos digitales por WhatsApp",
  "Fotos digitales por Google Drive",
@@ -17,16 +17,16 @@ const photographyOptions=[
  "Impresiones fotográficas",
 ];
 
-export function QuotationIncludesSelect({previousValues,photographyOnly=false}:Props){
+export function QuotationIncludesSelect({previousValues,photographyOnly=false,initialValue=""}:Props){
  const options=useMemo(()=>{
-  const historical=previousValues.flatMap(v=>v.split(/\r?\n/)).map(v=>v.trim()).filter(Boolean);
+  const historical=[...previousValues,initialValue].flatMap(v=>v.split(/\r?\n/)).map(v=>v.trim()).filter(Boolean);
   const seeds=photographyOnly?photographyOptions:[
    "Fotos digitales por WhatsApp","Fotos digitales por Google Drive"
   ];
   return [...new Map([...seeds,...historical].map(s=>[s.toLocaleLowerCase("es"),s] as const)).values()]
    .sort((a,b)=>a.localeCompare(b,"es"));
- },[previousValues,photographyOnly]);
- const [selected,setSelected]=useState<string[]>([]);
+ },[previousValues,photographyOnly,initialValue]);
+ const [selected,setSelected]=useState<string[]>(initialValue.split(/\r?\n/).map(x=>x.trim()).filter(Boolean));
  const [customOptions,setCustomOptions]=useState<string[]>([]);
  const [search,setSearch]=useState("");
  const [newValue,setNewValue]=useState("");
