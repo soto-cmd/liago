@@ -8,7 +8,7 @@ export function QuotationChoice({
 }){
  const [choice,setChoice]=useState(initialValue);
  const [custom,setCustom]=useState("");
- const clean=[...new Map(options.map(s=>s.trim()).filter(Boolean).map(s=>[s.toLocaleLowerCase("es"),s])).values()].sort((a,b)=>a.localeCompare(b,"es"));
+ const clean=[...new Map([...options,initialValue].map(s=>s.trim()).filter(Boolean).map(s=>[s.toLocaleLowerCase("es"),s])).values()].sort((a,b)=>a.localeCompare(b,"es"));
  const value=choice==="__custom__"?custom:choice;
  return <div className="text-sm font-medium">
   <label htmlFor={"choice-"+name}>{label}</label>
