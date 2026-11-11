@@ -26,7 +26,7 @@ export default async function PublicStorePage({params}:{params:Promise<{slug:str
  if(!store)notFound();
  const items=await fetchPublicItems(store.organization_id);
  const whatsapp=(store.whatsapp||"").replace(/\D/g,"");
- return <main className="min-h-screen bg-[#f6f7fb] text-slate-900">
+ return <main id="inicio" className="min-h-screen bg-[#f6f7fb] text-slate-900">
   <header className="border-b border-slate-100 bg-white">
    <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 md:px-8 md:py-2.5">
     <div className="flex min-w-0 items-center gap-2.5">
