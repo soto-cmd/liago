@@ -2,10 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireActiveOrganization } from "@/lib/organizations/active-organization";
 import { PrintButton } from "@/components/common/print-button";
-import { cancelPaymentAction } from "@/app/app/payments/actions";
+import { cancelPaymentAction, updatePaymentDocumentAction } from "@/app/app/payments/actions";
 import { ExportJpgButton } from "@/components/common/export-jpg-button";
 
-export default async function PaymentReceiptPage({params}:{params:Promise<{id:string}>}) {
+export default async function PaymentReceiptPage({params,searchParams}:{params:Promise<{id:string}>;searchParams:Promise<{updated?:string;error?:string}>}) {
+  const message=await searchParams;
   const {id}=await params;
   const {supabase,organizationId,organization,role}=await requireActiveOrganization();
   const [{data:payment},{data:company},{data:allocations}]=await Promise.all([
@@ -27,6 +28,28 @@ export default async function PaymentReceiptPage({params}:{params:Promise<{id:st
   const isStudio=(company?.name||organization.name).toLowerCase().includes("a&m estudio");
   return <div className="mx-auto max-w-4xl space-y-4 p-4 md:p-8 print:max-w-none print:p-0">
     <div className="flex flex-wrap items-center justify-between gap-3 print:hidden"><Link href="/app/payments" className="liago-btn-secondary">Volver a cobros</Link><div className="flex flex-wrap gap-2"><PrintButton filename={code+"_"+safeName+".pdf"}/><ExportJpgButton filename={code+"_"+safeName+".jpg"} targetId="payment-document"/></div></div>
+    {message.updated?<p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800 print:hidden">Recibo actualizado correctamente.</p>:null}
+    {message.error?<p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800 print:hidden">No se pudo actualizar el recibo. Revisá los datos y los permisos.</p>:null}
+    {["OWNER","ADMIN","MANAGER"].includes(role)&&payment.status==="CONFIRMED"?
+      <details className="rounded-lg border bg-white p-4 text-sm print:hidden">
+        <summary className="cursor-pointer font-semibold text-blue-800">Editar / actualizar recibo</summary>
+        <form action={updatePaymentDocumentAction} className="mt-3 grid gap-3 sm:grid-cols-2">
+          <input type="hidden" name="payment_id" value={payment.id}/>
+          <label className="font-medium">Fecha del recibo
+            <input name="paid_date" type="date" required defaultValue={new Date(payment.paid_at).toLocaleDateString("en-CA",{timeZone:"America/Asuncion"})} className="liago-input mt-1"/>
+          </label>
+          <label className="font-medium">Referencia
+            <input name="reference" maxLength={250} defaultValue={payment.reference||""} className="liago-input mt-1"/>
+          </label>
+          <label className="font-medium sm:col-span-2">Observaciones
+            <textarea name="notes" rows={2} maxLength={2000} defaultValue={payment.notes||""} className="liago-input mt-1"/>
+          </label>
+          <div className="sm:col-span-2 flex flex-wrap items-center gap-3">
+            <button className="liago-btn-primary">Guardar cambios</button>
+            <span className="text-xs text-slate-600">Para corregir un importe cobrado, anulá y registrá el cobro correcto. Así se conserva la trazabilidad.</span>
+          </div>
+        </form>
+      </details>:null}
     <article id="payment-document" className="rounded-xl border border-slate-200 bg-white p-7 shadow-sm md:p-10 print:rounded-none print:border-0 print:p-0 print:shadow-none">
       <div className="mb-7 border-b-2 border-emerald-700 pb-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
