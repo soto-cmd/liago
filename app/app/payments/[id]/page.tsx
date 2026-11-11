@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireActiveOrganization } from "@/lib/organizations/active-organization";
 import { PrintButton } from "@/components/common/print-button";
+import { ExportJpgButton } from "@/components/common/export-jpg-button";
 
 export default async function PaymentReceiptPage({params}:{params:Promise<{id:string}>}) {
   const {id}=await params;
@@ -24,8 +25,8 @@ export default async function PaymentReceiptPage({params}:{params:Promise<{id:st
   const methodNames:Record<string,string>={CASH:"Efectivo",TRANSFER:"Transferencia",CARD:"Tarjeta",OTHER:"Otro"};
   const isStudio=(company?.name||organization.name).toLowerCase().includes("a&m estudio");
   return <div className="mx-auto max-w-4xl space-y-4 p-4 md:p-8 print:max-w-none print:p-0">
-    <div className="flex flex-wrap items-center justify-between gap-3 print:hidden"><Link href="/app/payments" className="liago-btn-secondary">Volver a cobros</Link><PrintButton filename={code+"_"+safeName+".pdf"}/></div>
-    <article className="rounded-xl border border-slate-200 bg-white p-7 shadow-sm md:p-10 print:rounded-none print:border-0 print:p-0 print:shadow-none">
+    <div className="flex flex-wrap items-center justify-between gap-3 print:hidden"><Link href="/app/payments" className="liago-btn-secondary">Volver a cobros</Link><div className="flex flex-wrap gap-2"><PrintButton filename={code+"_"+safeName+".pdf"}/><ExportJpgButton filename={code+"_"+safeName+".jpg"} targetId="payment-document"/></div></div>
+    <article id="payment-document" className="rounded-xl border border-slate-200 bg-white p-7 shadow-sm md:p-10 print:rounded-none print:border-0 print:p-0 print:shadow-none">
       <div className="mb-7 border-b-2 border-emerald-700 pb-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>{(company?.logo_url||(isStudio?"/am-estudio-logo.svg":null))?<img src={company?.logo_url||"/am-estudio-logo.svg"} alt="Logo" className="mb-2 h-20 max-w-48 object-contain"/>:null}<h1 className="text-lg font-extrabold">{company?.name||organization.name}</h1><p className="text-xs text-slate-500">{company?.address} {company?.city}</p><p className="text-xs text-slate-500">{company?.phone} {company?.email}</p></div>
