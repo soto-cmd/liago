@@ -10,7 +10,7 @@ export default async function PaymentReceiptPage({params,searchParams}:{params:P
   const {id}=await params;
   const {supabase,organizationId,organization,role}=await requireActiveOrganization();
   const [{data:payment},{data:company},{data:allocations}]=await Promise.all([
-    supabase.from("payments").select("id,organization_id,payment_number,paid_at,amount,payment_method,reference,notes,status,sale_id,customer_id,customers(name,tax_id,phone,whatsapp,email,address),branches(name,address)").eq("organization_id",organizationId).eq("id",id).maybeSingle(),
+    supabase.from("payments").select("id,organization_id,payment_number,paid_at,document_date,amount,payment_method,reference,notes,status,sale_id,customer_id,customers(name,tax_id,phone,whatsapp,email,address),branches(name,address)").eq("organization_id",organizationId).eq("id",id).maybeSingle(),
     supabase.from("organizations").select("name,address,city,phone,email,logo_url,currency").eq("id",organizationId).maybeSingle(),
     supabase.from("payment_allocations").select("debt_id,amount,debts(sale_id)").eq("organization_id",organizationId).eq("payment_id",id).limit(10),
   ]);
@@ -35,8 +35,8 @@ export default async function PaymentReceiptPage({params,searchParams}:{params:P
         <summary className="cursor-pointer font-semibold text-blue-800">Editar / actualizar recibo</summary>
         <form action={updatePaymentDocumentAction} className="mt-3 grid gap-3 sm:grid-cols-2">
           <input type="hidden" name="payment_id" value={payment.id}/>
-          <label className="font-medium">Fecha del recibo
-            <input name="paid_date" type="date" required defaultValue={new Date(payment.paid_at).toLocaleDateString("en-CA",{timeZone:"America/Asuncion"})} className="liago-input mt-1"/>
+          <label className="font-medium">Fecha visible del recibo
+            <input name="paid_date" type="date" required defaultValue={payment.document_date||new Date(payment.paid_at).toLocaleDateString("en-CA",{timeZone:"America/Asuncion"})} className="liago-input mt-1"/>
           </label>
           <label className="font-medium">Referencia
             <input name="reference" maxLength={250} defaultValue={payment.reference||""} className="liago-input mt-1"/>
@@ -54,7 +54,7 @@ export default async function PaymentReceiptPage({params,searchParams}:{params:P
       <div className="mb-7 border-b-2 border-emerald-700 pb-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>{(company?.logo_url||(isStudio?"/am-estudio-logo.svg":null))?<img src={company?.logo_url||"/am-estudio-logo.svg"} alt="Logo" className="mb-2 h-20 max-w-48 object-contain"/>:null}<h1 className="text-lg font-extrabold">{company?.name||organization.name}</h1><p className="text-xs text-slate-500">{company?.address} {company?.city}</p><p className="text-xs text-slate-500">{company?.phone} {company?.email}</p></div>
-          <div className="text-right"><h2 className="text-2xl font-black tracking-wide">RECIBO</h2><p className="mt-1 text-xl font-bold">{code}</p><p className="text-sm text-slate-600">{new Date(payment.paid_at).toLocaleDateString("es-PY",{timeZone:"America/Asuncion"})}</p></div>
+          <div className="text-right"><h2 className="text-2xl font-black tracking-wide">RECIBO</h2><p className="mt-1 text-xl font-bold">{code}</p><p className="text-sm text-slate-600">{new Date((payment.document_date||payment.paid_at.slice(0,10))+"T12:00:00").toLocaleDateString("es-PY")}</p></div>
         </div>
       </div>
       {payment.status==="CANCELED"?<div className="mb-5 border-2 border-red-500 p-3 text-center font-black text-red-700">RECIBO ANULADO</div>:null}
