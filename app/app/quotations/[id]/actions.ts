@@ -58,3 +58,24 @@ export async function generateReceiptFromQuotationAction(formData: FormData) {
   revalidatePath("/app/cash");
   redirect("/app/sales/" + data + "?created=1");
 }
+
+export async function removeQuotationAction(formData: FormData) {
+  const { supabase, organizationId, role } = await requireActiveOrganization();
+  const id = String(formData.get("quotation_id")||"");
+  const remove = String(formData.get("mode"))==="delete";
+  if (!/^[0-9a-f-]{36}$/i.test(id) || !["OWNER","ADMIN","MANAGER"].includes(role)
+     || (remove && !["OWNER","ADMIN"].includes(role))
+     || String(formData.get("confirmation")||"").toUpperCase().trim() !== (remove?"ELIMINAR":"ANULAR")) {
+    redirect("/app/quotations/"+id+"?error=permission");
+  }
+  const { error } = await supabase.rpc("remove_quotation",{
+    p_organization_id: organizationId,p_quotation_id:id,p_delete:remove
+  });
+  if(error){
+    console.error("remove_quotation",error.code,error.message);
+    redirect("/app/quotations/"+id+"?error=remove");
+  }
+  revalidatePath("/app/quotations");
+  revalidatePath("/app/quotations/"+id);
+  redirect(remove?"/app/quotations?removed=1":"/app/quotations/"+id+"?canceled=1");
+}
