@@ -32,7 +32,7 @@ export function SignupForm() {
     const params = new URLSearchParams(window.location.search);
     const invite = params.get("invite");
     const requestedNext = params.get("next");
-    const next = requestedNext || (invite ? `/onboarding?invite=${encodeURIComponent(invite)}` : "/onboarding");
+    const next = requestedNext?.startsWith("/") && !requestedNext.startsWith("//") && !requestedNext.includes("\\") ? requestedNext : (invite && /^[0-9a-f-]{36}$/i.test(invite) ? `/invite/${invite}` : "/onboarding");
 
     const { error } = await supabase.auth.signUp({
       email,
@@ -48,7 +48,7 @@ export function SignupForm() {
       return;
     }
 
-    setMessage("Cuenta creada. Revisa tu correo para confirmar el registro.");
+    setMessage(invite || next.startsWith("/invite/") ? "Cuenta creada. Confirmá tu correo y regresá a la invitación para activar tu acceso. No necesitás crear otra empresa." : "Cuenta creada. Revisá tu correo para confirmar el registro.");
     setLoading(false);
   }
 
