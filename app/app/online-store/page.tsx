@@ -60,13 +60,13 @@ export default async function OnlineStoreAdmin({searchParams}:{searchParams:Prom
   </section>
   <section className="rounded-2xl border bg-white p-5 shadow-sm">
    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-    <div><h2 className="flex items-center gap-2 text-lg font-extrabold"><PackagePlus className="h-5 w-5 text-blue-700"/> Artículos para publicar</h2><p className="mt-1 text-xs text-slate-500">Primero prepará el artículo; después elegí si estará visible. El stock, costo de compra y clientes permanecen privados.</p></div>
-    <Link href="/app/products/new" className="text-sm font-bold text-blue-700 underline">Crear producto</Link>
+    <div><h2 className="flex items-center gap-2 text-lg font-extrabold"><PackagePlus className="h-5 w-5 text-blue-700"/> Artículos para publicar</h2><p className="mt-1 text-xs text-slate-500">1. Creá el producto · 2. Preparalo en esta tienda · 3. Subí sus fotos y publicalo. El stock, costo de compra y clientes permanecen privados.</p></div>
+    <Link href="/app/products/new?from=store" className="liago-btn-secondary">+ Crear producto para mi tienda</Link>
    </div>
    {canManage && store? <form action={publishOnlineStoreProductAction} className="mb-5 flex flex-wrap gap-2 rounded-xl bg-slate-50 p-3">
     <select name="product_id" required className="min-w-48 flex-1 rounded-lg border p-2.5 text-sm"><option value="">Seleccionar producto existente</option>{available.map(p=><option key={p.id} value={p.id}>{p.name} · {p.code} · {money(p.sale_price)}</option>)}</select>
     <button disabled={!available.length} className="liago-btn-primary disabled:opacity-50">Preparar artículo</button>
-   </form> : <p className="mb-4 text-sm text-amber-700">Guardá primero la configuración de la tienda para agregar artículos.</p>}
+   </form> : <p className="mb-4 text-sm text-amber-700">{canManage ? "Guardá primero la configuración de la tienda para agregar artículos." : "Tu rol actual permite consultar la tienda, pero no publicar artículos."}</p>}
    <div className="space-y-3">
     {items?.map(item=><details key={item.id} className="rounded-xl border border-slate-200 bg-white p-4">
      <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3"><span className="font-bold text-slate-900">{item.title} <span className="ml-2 font-mono text-xs text-slate-400">{item.code}</span></span><span className="flex items-center gap-2 text-xs"><span className="font-bold">{money(item.price)}</span><span className={item.is_published?"rounded-full bg-emerald-50 px-2 py-1 text-emerald-700":"rounded-full bg-slate-100 px-2 py-1 text-slate-600"}>{item.is_published?"Visible":"Oculto"}</span></span></summary>
