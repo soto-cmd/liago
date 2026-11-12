@@ -9,7 +9,7 @@ export default function SignupPage() {
         <CardHeader>
           <CardTitle>Crear cuenta</CardTitle>
           <CardDescription>
-            Registra tu usuario. Después crearás tu empresa.
+            Creá tu usuario para administrar tu negocio o aceptar una invitación.
           </CardDescription>
         </CardHeader>
         <CardContent>
