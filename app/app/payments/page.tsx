@@ -17,7 +17,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
   const total = payments?.filter((p)=>p.status==="CONFIRMED").reduce((s,p)=>s+Number(p.amount),0) ?? 0;
 
   return <div className="p-4 md:p-8">
-    <div className="mb-6"><p className="text-sm text-neutral-500">Historial financiero</p><h1 className="text-2xl font-semibold">Cobros</h1><p className="mt-1 text-sm text-neutral-600">Pagos recibidos por ventas y deudas; las anulaciones revierten saldo y caja.</p></div>
+    <div className="mb-6 flex flex-wrap items-center justify-between gap-3"><div><p className="text-sm text-neutral-500">Historial financiero</p><h1 className="text-2xl font-semibold">Cobros</h1><p className="mt-1 text-sm text-neutral-600">Pagos recibidos por ventas y deudas; las anulaciones revierten saldo y caja.</p></div><Link href="/app/sales?new=1" className="liago-btn-primary">Crear venta y emitir recibo</Link></div>
     {params.canceled ? <div className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">Cobro anulado correctamente.</div> : null}
     {params.error ? <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">No se pudo anular el cobro: {String(params.error)}</div> : null}
     <div className="mb-6 rounded-xl border bg-white p-4 shadow-sm md:max-w-sm"><div className="text-sm text-neutral-500">Total confirmado mostrado</div><div className="mt-2 text-2xl font-semibold">{total.toLocaleString("es-PY")}</div></div>
