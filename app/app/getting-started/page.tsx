@@ -7,6 +7,8 @@ const steps = [
   ["Conocé tu espacio", "Ubicá el panel principal, menú y accesos rápidos.", "/app", Building2],
   ["Creá tu primer cliente", "Guardá datos y empezá a construir la cuenta corriente.", "/app/customers", Users],
   ["Agregá productos y servicios", "Usá código, SKU o código de barras, precio y stock.", "/app/products/new", Package],
+  ["Configurá tu tienda online", "Creá tu catálogo público, agregá fotos y compartí el enlace.", "/app/online-store", Package],
+  ["Generá tus recibos", "Registrá una venta o cobro y descargá el recibo en PDF o JPG.", "/app/sales?new=1", WalletCards],
   ["Registrá una venta", "Contado, parcial o crédito desde un mismo flujo.", "/app/sales", ShoppingCart],
   ["Controlá cobros y deudas", "Revisá saldos, vencimientos y pagos.", "/app/debts", WalletCards],
   ["Seguí trabajando", "Volvé a esta guía cuando quieras.", "/app", CheckCircle2],

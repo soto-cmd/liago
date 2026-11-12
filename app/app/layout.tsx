@@ -34,6 +34,7 @@ const sections = [
       ["Inicio", "/app", LayoutDashboard],
       ["Ventas", "/app/sales", ShoppingCart],
       ["Cotizaciones", "/app/quotations", FileText],
+      ["Mis recibos", "/app/payments", ReceiptText],
       ["Productos", "/app/products", Package],
       ["Tienda online", "/app/online-store", Store],
       ["Servicios", "/app/services", Wrench],
@@ -116,7 +117,21 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
       <div className="min-w-0 print:block print:min-w-0">
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur md:px-8 print:!hidden">
-          <div className="md:hidden"><Link href="/app" className="flex items-center gap-2 font-extrabold text-slate-900"><span className="grid h-8 w-8 place-items-center rounded-xl bg-blue-600 text-white">L</span> LiaGo</Link></div>
+          <div className="flex items-center gap-2 md:hidden">
+            <Link href="/app" className="flex items-center gap-2 font-extrabold text-slate-900"><span className="grid h-8 w-8 place-items-center rounded-xl bg-blue-600 text-white">L</span> LiaGo</Link>
+            <details className="relative">
+              <summary className="cursor-pointer list-none rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700">Menú</summary>
+              <nav className="absolute left-0 top-11 z-40 grid min-w-48 gap-1 rounded-xl border bg-white p-2 shadow-lg">
+                <Link href="/app" className="rounded-lg px-3 py-2 text-sm hover:bg-slate-100">Inicio</Link>
+                <Link href="/app/products" className="rounded-lg px-3 py-2 text-sm hover:bg-slate-100">Mis productos</Link>
+                <Link href="/app/online-store" className="rounded-lg px-3 py-2 text-sm hover:bg-slate-100">Mi tienda online</Link>
+                <Link href="/app/sales?new=1" className="rounded-lg px-3 py-2 text-sm hover:bg-slate-100">Crear venta y recibo</Link>
+                <Link href="/app/payments" className="rounded-lg px-3 py-2 text-sm hover:bg-slate-100">Mis recibos</Link>
+                <Link href="/app/organizations" className="rounded-lg px-3 py-2 text-sm hover:bg-slate-100">Mis empresas</Link>
+                <Link href="/app/getting-started" className="rounded-lg px-3 py-2 text-sm hover:bg-slate-100">Primeros pasos</Link>
+              </nav>
+            </details>
+          </div>
           <div className="hidden text-sm text-slate-500 md:block">Gestión comercial simple, clara y segura.</div>
           <div className="flex items-center gap-2">
             {isPlatformAdmin ? <Link href="/admin" className="liago-btn-secondary hidden lg:inline-flex"><ShieldCheck className="h-4 w-4" /> Admin</Link> : null}

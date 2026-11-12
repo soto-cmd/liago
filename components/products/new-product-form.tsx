@@ -6,17 +6,18 @@ import { createProductAction } from "@/app/app/products/actions";
 
 type Option = { id: string; name: string };
 
-export function NewProductForm({ categories, suppliers }: { categories: Option[]; suppliers: Option[] }) {
+export function NewProductForm({ categories, suppliers, returnToStore=false }: { categories: Option[]; suppliers: Option[]; returnToStore?:boolean }) {
   return (
     <form action={createProductAction}>
       <input type="hidden" name="item_type" value="PRODUCT" />
+      {returnToStore?<input type="hidden" name="return_to_store" value="1"/>:null}
       <div className="sticky top-16 z-10 mb-6 -mx-4 border-b border-slate-200 bg-[#f5f7fb]/95 px-4 py-4 backdrop-blur md:-mx-8 md:px-8 xl:-mx-10 xl:px-10">
         <div className="mx-auto flex max-w-[1450px] flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/app/products" className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"><ArrowLeft className="h-5 w-5" /></Link>
+            <Link href={returnToStore?"/app/online-store":"/app/products"} className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"><ArrowLeft className="h-5 w-5" /></Link>
             <div><h1 className="text-2xl font-extrabold tracking-tight text-slate-950">Nuevo producto</h1><p className="text-sm text-slate-500">Cargá la información comercial, códigos y stock inicial.</p></div>
           </div>
-          <div className="flex flex-wrap gap-2"><Link href="/app/services/new" className="liago-btn-secondary"><Wrench className="h-4 w-4" /> Crear servicio</Link><Link href="/app/products" className="liago-btn-secondary">Cancelar</Link><button className="liago-btn-primary" type="submit"><Save className="h-4 w-4" /> Guardar producto</button></div>
+          <div className="flex flex-wrap gap-2"><Link href="/app/services/new" className="liago-btn-secondary"><Wrench className="h-4 w-4" /> Crear servicio</Link><Link href={returnToStore?"/app/online-store":"/app/products"} className="liago-btn-secondary">Cancelar</Link><button className="liago-btn-primary" type="submit"><Save className="h-4 w-4" /> {returnToStore?"Guardar y volver a tienda":"Guardar producto"}</button></div>
         </div>
       </div>
 

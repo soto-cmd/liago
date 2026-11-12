@@ -72,7 +72,7 @@ export default async function InvitationsPage({ searchParams }: { searchParams: 
           {(invitations || []).map((item) => {
             const status = invitationStatus(item);
             const organizationName = item.organization_id ? organizationMap.get(item.organization_id) : null;
-            const url = `${baseUrl}/auth/sign-up?invite=${item.token}`;
+            const url = `${baseUrl}/invite/${item.token}`;
             return (
               <Card key={item.id}>
                 <CardHeader>

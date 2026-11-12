@@ -17,7 +17,8 @@ function numberValue(formData: FormData, key: string, fallback = 0) {
 }
 
 export async function createProductAction(formData: FormData) {
-  const { supabase, organizationId } = await requireActiveOrganization();
+  const { supabase, organizationId, role } = await requireActiveOrganization();
+  if (!["OWNER","ADMIN","MANAGER"].includes(role)) redirect("/app/products?error=not_allowed");
   const code = String(formData.get("code") || "").trim();
   const name = String(formData.get("name") || "").trim();
   if (!code || !name) redirect("/app/products?error=required");
@@ -76,7 +77,7 @@ export async function createProductAction(formData: FormData) {
 
   revalidatePath("/app/products");
   revalidatePath("/app/inventory");
-  redirect(`/app/products/${product.id}?created=1`);
+  redirect(formData.get("return_to_store")==="1" ? "/app/online-store?new_product=1" : `/app/products/${product.id}?created=1`);
 }
 
 export async function updateProductAction(formData: FormData) {
