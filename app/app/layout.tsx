@@ -34,6 +34,7 @@ const sections = [
       ["Inicio", "/app", LayoutDashboard],
       ["Ventas", "/app/sales", ShoppingCart],
       ["Cotizaciones", "/app/quotations", FileText],
+      ["Mis recibos", "/app/payments", ReceiptText],
       ["Productos", "/app/products", Package],
       ["Tienda online", "/app/online-store", Store],
       ["Servicios", "/app/services", Wrench],
