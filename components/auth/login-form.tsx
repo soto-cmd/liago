@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") || "/app";
+  const requestedNext = searchParams.get("next") || "/app";
+  const next = requestedNext.startsWith("/") && !requestedNext.startsWith("//") && !requestedNext.includes("\\") ? requestedNext : "/app";
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
