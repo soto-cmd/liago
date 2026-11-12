@@ -62,7 +62,7 @@ export default async function OnlineStoreAdmin({searchParams}:{searchParams:Prom
   <section className="rounded-2xl border bg-white p-5 shadow-sm">
    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
     <div><h2 className="flex items-center gap-2 text-lg font-extrabold"><PackagePlus className="h-5 w-5 text-blue-700"/> Artículos para publicar</h2><p className="mt-1 text-xs text-slate-500">1. Creá el producto · 2. Preparalo en esta tienda · 3. Subí sus fotos y publicalo. El stock, costo de compra y clientes permanecen privados.</p></div>
-    <Link href="/app/products/new?from=store" className="liago-btn-secondary">+ Crear producto para mi tienda</Link>
+    {canManage?<Link href="/app/products/new?from=store" className="liago-btn-secondary">+ Crear producto para mi tienda</Link>:null}
    </div>
    {canManage && store? <form action={publishOnlineStoreProductAction} className="mb-5 flex flex-wrap gap-2 rounded-xl bg-slate-50 p-3">
     <select name="product_id" required className="min-w-48 flex-1 rounded-lg border p-2.5 text-sm"><option value="">Seleccionar producto existente</option>{available.map(p=><option key={p.id} value={p.id}>{p.name} · {p.code} · {money(p.sale_price)}</option>)}</select>
