@@ -76,6 +76,7 @@ export function InvitationForm({ organizations }: { organizations: Organization[
               <option value="VIEWER">Solo lectura</option>
             </select>
           </div>
+          <p className="md:col-span-2 text-xs text-neutral-600">Para cargar productos y gestionar la tienda de esta empresa, asigná Administrador o Gerente. Solo lectura no permite editar y Vendedor tiene permisos comerciales limitados.</p>
           <input type="hidden" name="trial_days" value="7" />
           <input type="hidden" name="plan" value="FREE" />
         </>
