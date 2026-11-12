@@ -6,7 +6,7 @@ import {StoreBrandMedia} from "@/components/online-store/store-brand-media";
 import { publishOnlineStoreProductAction, removeOnlineStoreProductAction, saveOnlineStoreAction, updateOnlineStoreProductAction } from "./actions";
 
 export const dynamic="force-dynamic";
-type Search={saved?:string;error?:string};
+type Search={saved?:string;error?:string;new_product?:string};
 function slugify(value:string){return value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,65)||"mi-tienda";}
 function money(v:string|number){return "G. "+Number(v).toLocaleString("es-PY");}
 const field="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500";
@@ -28,6 +28,7 @@ export default async function OnlineStoreAdmin({searchParams}:{searchParams:Prom
    <p className="mt-2 max-w-2xl text-sm text-slate-600">Publicá artículos de tu empresa, compartí el catálogo y recibí consultas por WhatsApp. Cada empresa gestiona sus publicaciones de forma independiente, con control de precios y disponibilidad.</p></div>
    {store?.is_published ? <Link href={`/tienda/${store.slug}`} target="_blank" rel="noopener noreferrer" className="liago-btn-primary"><ExternalLink className="h-4 w-4"/> Ver tienda pública</Link>:null}
   </div>
+  {params.new_product?<div role="status" className="rounded-xl bg-blue-50 p-4 text-sm font-semibold text-blue-800">Producto creado. Seleccionalo en «Preparar artículo», cargá sus fotografías y activá «Mostrar en la tienda pública».</div>:null}
   {params.saved?<div role="status" className="rounded-xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">Cambios guardados correctamente. Los artículos solo se muestran al público si la tienda y cada artículo están publicados.</div>:null}
   {params.error?<div role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-700">No se pudo guardar. Revisá el formulario, el código de la tienda y los valores. Un nombre de enlace puede estar ocupado por otra empresa.</div>:null}
   <div className="grid gap-4 sm:grid-cols-3">
