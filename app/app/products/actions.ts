@@ -77,7 +77,7 @@ export async function createProductAction(formData: FormData) {
 
   revalidatePath("/app/products");
   revalidatePath("/app/inventory");
-  redirect(`/app/products/${product.id}?created=1`);
+  redirect(formData.get("return_to_store")==="1" ? "/app/online-store?new_product=1" : `/app/products/${product.id}?created=1`);
 }
 
 export async function updateProductAction(formData: FormData) {
