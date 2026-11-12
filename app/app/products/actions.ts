@@ -17,7 +17,8 @@ function numberValue(formData: FormData, key: string, fallback = 0) {
 }
 
 export async function createProductAction(formData: FormData) {
-  const { supabase, organizationId } = await requireActiveOrganization();
+  const { supabase, organizationId, role } = await requireActiveOrganization();
+  if (!["OWNER","ADMIN","MANAGER"].includes(role)) redirect("/app/products?error=not_allowed");
   const code = String(formData.get("code") || "").trim();
   const name = String(formData.get("name") || "").trim();
   if (!code || !name) redirect("/app/products?error=required");
