@@ -105,7 +105,7 @@ export async function updateOnlineStoreProductAction(form: FormData) {
   const compare=originalRaw ? Number(originalRaw) : null;
   const published=field(form,"is_published")==="on";
   const promoCode=field(form,"promo_code").slice(0,60);
-  const extraPhotos=field(form,"images").split(/\\r?\\n|,/).map(x=>x.trim()).filter(Boolean);
+  const extraPhotos=field(form,"images").split(/\r?\n|,/).map(x=>x.trim()).filter(Boolean);
   const allPhotos=[imageRaw,...extraPhotos].filter(Boolean);
   const condition=field(form,"item_condition")||"NEW";
   const listingStatus=field(form,"listing_status")||"AVAILABLE";
