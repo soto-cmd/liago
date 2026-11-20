@@ -3,6 +3,7 @@ import Link from "next/link";
 import PlantillasNav from "./nav";
 import {paperVariants,variantFamilies,variantTotal} from "./variantes";
 import {makeTracingSvg,type TraceSettings} from "./tracing";
+import {renderPlanner} from "./planners";
 import {useEffect,useMemo,useState} from "react";
 import {ArrowLeft,Bookmark,ChevronDown,Download,FilePlus2,Layers,Minus,Plus,Printer,RotateCcw,Share2,Trash2,ArrowUp,ArrowDown} from "lucide-react";
 type Template={id:string;name:string;group:string;mode:string};
@@ -21,7 +22,7 @@ export const entries:Template[]=[
 ["cornell","Notas Cornell","Más estructuras de papel","cornell"],["hexagono","Cuadrícula hexagonal","Más estructuras de papel","hex"],["polar","Gráfico polar","Más estructuras de papel","polar"],["historias","Hoja para historias con dibujo","Más estructuras de papel","storywrite"],["frances","Papel pautado francés","Más estructuras de papel","hand"],["caligrafia","Papel de caligrafía","Más estructuras de papel","hand"],["acordes","Diagramas de acordes","Más estructuras de papel","chords"],["contable","Papel contable","Más estructuras de papel","ledger"],["carta","Papel carta","Más estructuras de papel","letter"],["calendario","Calendario mensual","Más estructuras de papel","calendar"]
 ].map(([id,name,group,mode])=>({id,name,group,mode}));
 const sizes:Record<string,[number,number]>={A4:[210,297],A5:[148,210],Carta:[215.9,279.4],Oficio:[215.9,330.2],A3:[297,420],A6:[105,148]};
-type Sheet=TraceSettings & {id:number;variantId?:string;template:string;paper:string;landscape:boolean;margin:number;spacing:number;ink:string;background:string;heading:string;subtitle:string;date:string;calendarDate?:string;calendarAuto?:boolean;};
+type Sheet=TraceSettings & {id:number;variantId?:string;template:string;paper:string;landscape:boolean;margin:number;spacing:number;ink:string;background:string;heading:string;subtitle:string;date:string;calendarDate?:string;calendarAuto?:boolean;habitNames?:string[];};
 export const initial:Sheet={id:1,template:"plan-mensual",paper:"A4",landscape:false,margin:13,spacing:7,ink:"#333f53",background:"#ffffff",heading:"",subtitle:"",date:"",traceInput:"A",traceMode:"both",traceSize:"medium",dashedCopies:"half",traceFont:"rounded",showNameLine:true,showDateLine:true,showFooterMark:true};
 const esc=(v:string)=>v.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]||c));
 const fmt=(v:number)=>Number(v.toFixed(3));
@@ -32,13 +33,14 @@ const parseISO=(iso:string)=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);if(!
 const changePeriod=(d:Date,year:number,month:number)=>new Date(year,month,Math.min(d.getDate(),new Date(year,month+1,0).getDate()));
 const isoMonday=(d:Date)=>{const start=new Date(d.getFullYear(),d.getMonth(),d.getDate());start.setDate(start.getDate()-(start.getDay()+6)%7);return start;};
 const shortDate=(d:Date)=>`${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
-const planningMode=(mode:string)=>["daily","weekly","monthly","calendar","yearly"].includes(mode);
+const planningMode=(mode:string)=>["daily","weekly","monthly","calendar","yearly","habit"].includes(mode);
 
 export function svgFor(s:Sheet){
  const [pw,ph]=sizes[s.paper]||sizes.A4,[w,h]=s.landscape?[ph,pw]:[pw,ph],m=s.margin,R=w-m,B=h-m,ww=R-m,hh=B-(m+18),sp=s.spacing,ink=s.ink;
  let t=m+18;
  const mode=entries.find(x=>x.id===s.template)?.mode||"ruled",name=entries.find(x=>x.id===s.template)?.name||"Plantilla";
  if(mode==="lettertrace")return {svg:makeTracingSvg(s,w,h),w,h};
+ if(s.template==="plan-diario"||s.template==="plan-proyecto"||s.template==="habitos"){const kind=s.template==="plan-diario"?"daily":s.template==="plan-proyecto"?"project":"habit";return {svg:renderPlanner(kind,s,w,h),w,h}}
  let out="";
  const ln=(x1:number,y1:number,x2:number,y2:number,th=.22,dash="")=>{out+=`<line x1="${fmt(x1)}" y1="${fmt(y1)}" x2="${fmt(x2)}" y2="${fmt(y2)}" stroke="${ink}" stroke-width="${th}" ${dash?'stroke-dasharray="'+dash+'"':""}/>`};
  const rect=(x:number,y:number,a:number,b:number,fill="none",th=.25)=>{out+=`<rect x="${fmt(x)}" y="${fmt(y)}" width="${fmt(Math.max(0,a))}" height="${fmt(Math.max(0,b))}" fill="${fill}" stroke="${ink}" stroke-width="${th}"/>`};
@@ -141,6 +143,7 @@ export default function Estudio(){
   const same=chosen.every(p=>p.paper===chosen[0].paper&&p.landscape===chosen[0].landscape);
   if(all&&!same){setError("El paquete combina tamaños diferentes. Usá un único tamaño y orientación para conservar la escala real.");return;}
   const {w,h}=svgFor(chosen[0]);
+  const pdfName=all?"Liago Paquete de impresión":`Liago ${entries.find(e=>e.id===current.template)?.name||"Plantilla"}`;
   const html=chosen.map(p=>{const art=svgFor(p);return `<div class="page" style="width:${art.w}mm;height:${art.h}mm">${art.svg}</div>`}).join("");
   // Print from a same-origin iframe instead of window.open, so popup blockers never intervene.
   const previous=document.getElementById("liago-print-frame");
@@ -160,7 +163,7 @@ export default function Estudio(){
     try{target.focus();target.print();window.setTimeout(()=>{if(iframe.isConnected)iframe.remove()},120000);setError("")}
     catch{iframe.remove();setError("No se pudo abrir el diálogo de impresión. Intentá nuevamente.")}
   };
-  iframe.srcdoc=`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Liago - impresión</title><style>@page{size:${w}mm ${h}mm;margin:0}html,body{margin:0;padding:0;background:white}.page{break-after:page;page-break-after:always;overflow:hidden}.page:last-child{break-after:auto}svg{width:100%;height:100%;display:block}</style></head><body>${html}</body></html>`;
+  iframe.srcdoc=`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${pdfName}</title><style>@page{size:${w}mm ${h}mm;margin:0}html,body{margin:0;padding:0;background:white}.page{break-after:page;page-break-after:always;overflow:hidden}.page:last-child{break-after:auto}svg{width:100%;height:100%;display:block}</style></head><body>${html}</body></html>`;
   document.body.appendChild(iframe);
  };
  const exportSvg=()=>save(new Blob([art.svg],{type:"image/svg+xml;charset=utf-8"}),"Liago "+template.name+".svg");
@@ -243,6 +246,10 @@ export default function Estudio(){
 
 </section>}
 
+{current.template==="habitos"&&<section className="rounded-xl border border-stone-200 bg-white p-3">
+<h3 className="mb-2 text-sm font-semibold">Hábitos para seguir</h3>
+{(current.habitNames?.length?current.habitNames:["Lectura","Movimiento","Trabajo concentrado","Reflexión","Hidratación"]).map((habit,i)=><label key={i} className="mb-2 block text-xs">Hábito {i+1}<input className={input} maxLength={48} value={habit} onChange={e=>{const values=[...(current.habitNames?.length?current.habitNames:["Lectura","Movimiento","Trabajo concentrado","Reflexión","Hidratación"])];values[i]=e.target.value;update({habitNames:values})}}/></label>)}
+</section>}
 <div className="rounded-lg border border-stone-200 bg-white p-3 text-xs text-stone-500">La marca de agua Liago aparece automáticamente en todas las hojas.</div>
 </div>}
 <div className="mt-5 border-t border-stone-200 pt-4"><button onClick={()=>update({...initial,id:current.id,template:current.template})} className="flex items-center gap-2 text-sm text-stone-600 hover:text-blue-800"><RotateCcw size={15}/> Restablecer ajustes de esta hoja</button></div>
