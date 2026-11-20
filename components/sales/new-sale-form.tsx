@@ -30,7 +30,6 @@ export function NewSaleForm({ products, customers, branches }: { products: Produ
     return sum + subtotal - discount + tax;
   }, 0), [items]);
 
-  const needsCustomer = true;
   const partialValue = Number(partialPaid) || 0;
   const partialValid = saleType !== "PARTIAL" || (partialValue > 0 && partialValue < total);
   const canSubmit = items.length > 0 && Boolean(customerId) && partialValid;
