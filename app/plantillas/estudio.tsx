@@ -25,7 +25,8 @@ const initial:Sheet={id:1,template:"plan-mensual",paper:"A4",landscape:false,mar
 const esc=(v:string)=>v.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]||c));
 const fmt=(v:number)=>Number(v.toFixed(3));
 function svgFor(s:Sheet){
- const [pw,ph]=sizes[s.paper]||sizes.A4,[w,h]=s.landscape?[ph,pw]:[pw,ph],m=s.margin,R=w-m,B=h-m,t=m+18,ww=R-m,hh=B-t,sp=s.spacing,ink=s.ink;
+ const [pw,ph]=sizes[s.paper]||sizes.A4,[w,h]=s.landscape?[ph,pw]:[pw,ph],m=s.margin,R=w-m,B=h-m,ww=R-m,hh=B-(m+18),sp=s.spacing,ink=s.ink;
+ let t=m+18;
  const mode=entries.find(x=>x.id===s.template)?.mode||"ruled",name=entries.find(x=>x.id===s.template)?.name||"Plantilla";
  if(mode==="lettertrace")return {svg:makeTracingSvg(s,w,h),w,h};
  let out="";
