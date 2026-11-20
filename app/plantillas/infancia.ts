@@ -1,8 +1,9 @@
 // Actividades originales de Liago para uso doméstico y aprendizaje infantil.
 // Todas se renderizan como SVG vectorial local, sin solicitudes a servicios externos.
+import {renderKidsDecoration,kidsThemeInk,type KidsTheme} from "./temas-infantiles";
 export type KidsSheetOptions={
  heading:string;ink:string;background:string;margin:number;
- childName?:string;kidTasks?:string[];
+ childName?:string;kidTasks?:string[];kidTheme?:KidsTheme;
 };
 export const kidsSheetIds=[
  "trazado-nombre","nombre-grande","nombre-cajas","nombre-mira-copia",
@@ -32,7 +33,9 @@ export function renderKidsSheet(id:string,s:KidsSheetOptions,w:number,h:number):
  // Diseño A4 proporcional: se adapta a otros papeles sin cortar contenido.
  const paperW=w,paperH=h;
  w=210;h=297;
+ const theme=s.kidTheme||"animales";
  const ink=/^#[0-9a-f]{6}$/i.test(s.ink)?s.ink:"#334155";
+ const themeInk=kidsThemeInk(theme);
  const bg=/^#[0-9a-f]{6}$/i.test(s.background)?s.background:"#ffffff";
  const m=Math.max(10,Math.min(30,s.margin||13)),r=w-m,inner=r-m,footer=h-8,top=m+20;
  const raw=(s.childName||"").trim().slice(0,22);
@@ -61,10 +64,15 @@ export function renderKidsSheet(id:string,s:KidsSheetOptions,w:number,h:number):
   txt(name,x,y,size,true,color,"start",outline?"#94a3b8":"",outline?"1.1 1.5":"");
  }
  rect(0,0,w,h,bg,bg);
- txt((s.heading.trim()||defaults[id]||"ACTIVIDAD").slice(0,60),m,m+4.5,5.5,true);
- line(m,m+9,r,m+9,ink,.45);
+ // La misma decoración vectorial se usa en pantalla, SVG, PNG y PDF.
+ out.push(renderKidsDecoration(theme));
+ const heading=(s.heading.trim()||defaults[id]||"ACTIVIDAD").slice(0,54);
+ const headerSize=theme==="simple"?5.5:Math.min(5.5,128/Math.max(1,heading.length*.63));
+ txt(heading,m,m+4.5,headerSize,true,theme==="simple"?ink:themeInk);
+ line(m,m+9,r,m+9,theme==="simple"?ink:themeInk,.45);
  txt("NOMBRE",m,top,2.9,true);
  line(m+20,top+.5,r*.66,top+.5);
+ if(raw)txt(raw,m+20,top-1,Math.min(4.1,58/Math.max(2,raw.length*.6)),false,themeInk);
  txt("FECHA",r*.69,top,2.9,true);
  line(r*.78,top+.5,r,top+.5);
  txt(id==="tareas-ninos"?"Cada día cuenta. ¡Seguí adelante!":id==="rutina-infantil"?"Una tarea a la vez. ¡Vos podés!":"Aprendé jugando, a tu propio ritmo.",m,top+12,3.2,false,"#64748b");
