@@ -6,7 +6,7 @@ import {useEffect,useMemo,useState} from "react";
 import {ArrowLeft,Bookmark,ChevronDown,Download,FilePlus2,Layers,Minus,Plus,Printer,RotateCcw,Share2,Trash2,ArrowUp,ArrowDown} from "lucide-react";
 type Template={id:string;name:string;group:string;mode:string};
 const entries:Template[]=[
-["plan-semanal","Plan semanal","Planificación","weekly"],["plan-diario","Plan diario","Planificación","daily"],["plan-proyecto","Plan de proyecto","Planificación","project"],["plan-mensual","Plan mensual","Planificación","monthly"],["sprint","Sprint de objetivo","Planificación","goals"],["reto","Seguimiento de reto","Planificación","track"],["habitos","Seguimiento de hábitos","Planificación","habit"],
+["plan-semanal","Plan semanal","Planificación","weekly"],["plan-diario","Plan diario","Planificación","daily"],["plan-proyecto","Plan de proyecto","Planificación","project"],["plan-mensual","Plan mensual","Planificación","monthly"],["plan-anual","Plan anual","Planificación","yearly"],["sprint","Sprint de objetivo","Planificación","goals"],["reto","Seguimiento de reto","Planificación","track"],["habitos","Seguimiento de hábitos","Planificación","habit"],
 ["lista-lectura","Lista de lectura","Lectura","ledger"],["notas-libro","Notas de libro","Lectura","notes"],["seguimiento-lectura","Seguimiento de lectura","Lectura","track"],
 ["peliculas","Registro de películas","Registros","ledger"],["plantas","Ficha de planta","Registros","notes"],["entrenamiento","Registro de entrenamiento","Registros","ledger"],["receta","Prueba de receta","Registros","notes"],
 ["partitura","Papel pautado","Música editable","staff"],["lead-sheet","Lead sheet","Música editable","staff"],["composicion","Hoja de composición","Música editable","staff"],["tab-notacion","TAB + notación","Música editable","tabs"],["biblioteca-acordes","Biblioteca de acordes","Música editable","chords"],["practica-musical","Registro de práctica","Música editable","ledger"],["conjunto","Partitura de conjunto","Música editable","staff"],
@@ -20,10 +20,19 @@ const entries:Template[]=[
 ["cornell","Notas Cornell","Más estructuras de papel","cornell"],["hexagono","Cuadrícula hexagonal","Más estructuras de papel","hex"],["polar","Gráfico polar","Más estructuras de papel","polar"],["historias","Hoja para historias con dibujo","Más estructuras de papel","storywrite"],["frances","Papel pautado francés","Más estructuras de papel","hand"],["caligrafia","Papel de caligrafía","Más estructuras de papel","hand"],["acordes","Diagramas de acordes","Más estructuras de papel","chords"],["contable","Papel contable","Más estructuras de papel","ledger"],["carta","Papel carta","Más estructuras de papel","letter"],["calendario","Calendario mensual","Más estructuras de papel","calendar"]
 ].map(([id,name,group,mode])=>({id,name,group,mode}));
 const sizes:Record<string,[number,number]>={A4:[210,297],A5:[148,210],Carta:[215.9,279.4],Oficio:[215.9,330.2],A3:[297,420],A6:[105,148]};
-type Sheet=TraceSettings & {id:number;variantId?:string;template:string;paper:string;landscape:boolean;margin:number;spacing:number;ink:string;background:string;heading:string;subtitle:string;date:string;};
+type Sheet=TraceSettings & {id:number;variantId?:string;template:string;paper:string;landscape:boolean;margin:number;spacing:number;ink:string;background:string;heading:string;subtitle:string;date:string;calendarDate?:string;calendarAuto?:boolean;};
 const initial:Sheet={id:1,template:"plan-mensual",paper:"A4",landscape:false,margin:13,spacing:7,ink:"#333f53",background:"#ffffff",heading:"",subtitle:"",date:"",traceInput:"A",traceMode:"both",traceSize:"medium",dashedCopies:"half",traceFont:"rounded",showNameLine:true,showDateLine:true,showFooterMark:true};
 const esc=(v:string)=>v.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]||c));
 const fmt=(v:number)=>Number(v.toFixed(3));
+const MONTHS=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const WEEKDAYS=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+const dateISO=(d:Date)=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");
+const parseISO=(iso:string)=>{const m=/^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(iso);if(!m)return new Date();const y=Number(m[1]),month=Number(m[2]),day=Number(m[3]);if(y<1900||y>2100||month<1||month>12)return new Date();return new Date(y,month-1,Math.min(day,new Date(y,month,0).getDate()));};
+const changePeriod=(d:Date,year:number,month:number)=>new Date(year,month,Math.min(d.getDate(),new Date(year,month+1,0).getDate()));
+const isoMonday=(d:Date)=>{const start=new Date(d.getFullYear(),d.getMonth(),d.getDate());start.setDate(start.getDate()-(start.getDay()+6)%7);return start;};
+const shortDate=(d:Date)=>`${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+const planningMode=(mode:string)=>["daily","weekly","monthly","calendar","yearly"].includes(mode);
+
 function svgFor(s:Sheet){
  const [pw,ph]=sizes[s.paper]||sizes.A4,[w,h]=s.landscape?[ph,pw]:[pw,ph],m=s.margin,R=w-m,B=h-m,ww=R-m,hh=B-(m+18),sp=s.spacing,ink=s.ink;
  let t=m+18;
