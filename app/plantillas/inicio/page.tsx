@@ -49,9 +49,9 @@ export default function InicioPlantillas(){
    <p className="mt-4 text-sm text-stone-600">Contacto directo con <strong className="text-stone-800">Adrián Soto</strong>, creador de Liago.</p>
   </div>
   <div className="flex w-full flex-col gap-3 sm:w-auto">
-   <a href="https://wa.me/595971643485?text=Hola%20Adri%C3%A1n%2C%20quisiera%20solicitar%20una%20nueva%20plantilla%20para%20Liago." target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-900 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-800"><MessageCircle size={18}/> Solicitar por WhatsApp</a>
+   <a href="https://wa.me/595976828608?text=Hola%20Adri%C3%A1n%2C%20quisiera%20solicitar%20una%20nueva%20plantilla%20para%20Liago." target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-900 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-800"><MessageCircle size={18}/> Solicitar por WhatsApp</a>
    <a href="mailto:l.adrian.soto@gmail.com?subject=Solicitud%20de%20plantilla%20-%20Liago" className="inline-flex items-center justify-center gap-2 rounded-lg border border-stone-300 px-5 py-3 text-sm font-semibold text-stone-800 hover:border-blue-900"><Mail size={18}/> Solicitar por correo</a>
-   <p className="text-center text-xs text-stone-500">WhatsApp: 0971 643 485</p>
+   <p className="text-center text-xs text-stone-500">WhatsApp: 0976 828 608</p>
    <p className="text-center text-xs text-stone-500">l.adrian.soto@gmail.com</p>
   </div>
  </div></section>
