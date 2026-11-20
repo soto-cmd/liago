@@ -4,11 +4,21 @@ import PlantillasNav from "./nav";
 import {paperVariants,variantFamilies,variantTotal} from "./variantes";
 import {makeTracingSvg,type TraceSettings} from "./tracing";
 import {renderPlanner} from "./planners";
+import {isLearningId,learningSvg} from "./aprendizaje";
 import {useEffect,useMemo,useState} from "react";
 import {ArrowLeft,Bookmark,ChevronDown,Download,FilePlus2,Layers,Minus,Plus,Printer,RotateCcw,Share2,Trash2,ArrowUp,ArrowDown} from "lucide-react";
 type Template={id:string;name:string;group:string;mode:string};
 export const entries:Template[]=[
 ["plan-semanal","Plan semanal","Planificación","weekly"],["plan-diario","Plan diario","Planificación","daily"],["plan-proyecto","Plan de proyecto","Planificación","project"],["plan-mensual","Plan mensual","Planificación","monthly"],["plan-anual","Plan anual","Planificación","yearly"],["sprint","Sprint de objetivo","Planificación","goals"],["reto","Seguimiento de reto","Planificación","track"],["habitos","Seguimiento de hábitos","Planificación","habit"],
+["aprender-inicial","Mi primera letra","Aprendizaje infantil","learning"],
+["aprender-buscar-letras","Buscar letras de mi nombre","Aprendizaje infantil","learning"],
+["aprender-abecedario","Abecedario para repasar","Aprendizaje infantil","learning"],
+["aprender-numeros","Números del 1 al 20","Aprendizaje infantil","learning"],
+["aprender-contar","Contar y escribir","Aprendizaje infantil","learning"],
+["aprender-sumas","Sumas para principiantes","Aprendizaje infantil","learning"],
+["aprender-restas","Restas para principiantes","Aprendizaje infantil","learning"],
+["aprender-formas","Formas para colorear","Aprendizaje infantil","learning"],
+["aprender-relacionar","Relacionar número y cantidad","Aprendizaje infantil","learning"],
 ["lista-lectura","Lista de lectura","Lectura","ledger"],["notas-libro","Notas de libro","Lectura","notes"],["seguimiento-lectura","Seguimiento de lectura","Lectura","track"],
 ["peliculas","Registro de películas","Registros","ledger"],["plantas","Ficha de planta","Registros","notes"],["entrenamiento","Registro de entrenamiento","Registros","ledger"],["receta","Prueba de receta","Registros","notes"],
 ["partitura","Papel pautado","Música editable","staff"],["lead-sheet","Lead sheet","Música editable","staff"],["composicion","Hoja de composición","Música editable","staff"],["tab-notacion","TAB + notación","Música editable","tabs"],["biblioteca-acordes","Biblioteca de acordes","Música editable","chords"],["practica-musical","Registro de práctica","Música editable","ledger"],["conjunto","Partitura de conjunto","Música editable","staff"],
@@ -41,6 +51,7 @@ export function svgFor(s:Sheet){
  const mode=entries.find(x=>x.id===s.template)?.mode||"ruled",name=entries.find(x=>x.id===s.template)?.name||"Plantilla";
  if(mode==="lettertrace")return {svg:makeTracingSvg(s,w,h),w,h};
  if(s.template==="plan-diario"||s.template==="plan-proyecto"||s.template==="habitos"){const kind=s.template==="plan-diario"?"daily":s.template==="plan-proyecto"?"project":"habit";return {svg:renderPlanner(kind,s,w,h),w,h}}
+ if(isLearningId(s.template))return {svg:learningSvg(s.template,s,w,h),w,h};
  let out="";
  const ln=(x1:number,y1:number,x2:number,y2:number,th=.22,dash="")=>{out+=`<line x1="${fmt(x1)}" y1="${fmt(y1)}" x2="${fmt(x2)}" y2="${fmt(y2)}" stroke="${ink}" stroke-width="${th}" ${dash?'stroke-dasharray="'+dash+'"':""}/>`};
  const rect=(x:number,y:number,a:number,b:number,fill="none",th=.25)=>{out+=`<rect x="${fmt(x)}" y="${fmt(y)}" width="${fmt(Math.max(0,a))}" height="${fmt(Math.max(0,b))}" fill="${fill}" stroke="${ink}" stroke-width="${th}"/>`};
@@ -246,6 +257,11 @@ export default function Estudio(){
 
 </section>}
 
+{isLearningId(current.template)&&<section className="mt-4 space-y-2 rounded-xl border border-blue-200 bg-blue-50/40 p-3">
+ <h3 className="text-sm font-bold text-blue-900">Ficha de aprendizaje</h3>
+ {["aprender-inicial","aprender-buscar-letras"].includes(current.template)&&<label className="block text-xs font-medium">Nombre del niño o la niña<input className={input} value={current.traceInput||""} maxLength={22} placeholder="Ej.: Lia" onChange={e=>update({traceInput:e.target.value})}/></label>}
+ <p className="text-xs leading-5 text-stone-600">La actividad se genera automáticamente para imprimir. Podés cambiar el título, tamaño de hoja, orientación y colores. No requiere cuenta.</p>
+ </section>}
 {current.template==="habitos"&&<section className="rounded-xl border border-stone-200 bg-white p-3">
 <h3 className="mb-2 text-sm font-semibold">Hábitos para seguir</h3>
 {(current.habitNames?.length?current.habitNames:["Lectura","Movimiento","Trabajo concentrado","Reflexión","Hidratación"]).map((habit,i)=><label key={i} className="mb-2 block text-xs">Hábito {i+1}<input className={input} maxLength={48} value={habit} onChange={e=>{const values=[...(current.habitNames?.length?current.habitNames:["Lectura","Movimiento","Trabajo concentrado","Reflexión","Hidratación"])];values[i]=e.target.value;update({habitNames:values})}}/></label>)}

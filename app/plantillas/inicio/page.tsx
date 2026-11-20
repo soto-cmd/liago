@@ -6,7 +6,8 @@ const sections=[
  {title:"Planificadores",detail:"Planes diarios, semanales, mensuales y anuales con calendario automático.",icon:CalendarDays,href:"/plantillas?template=plan-semanal"},
  {title:"Escritura y notas",detail:"Papel rayado, cuadernos, guías de escritura y fichas.",icon:PenLine,href:"/plantillas?template=pautado"},
  {title:"Matemáticas y técnica",detail:"Cuadrículas, papel milimetrado, puntos y diagramas.",icon:Grid3X3,href:"/plantillas?template=cuadricula"},
- {title:"Práctica de letras",detail:"Hojas para repasar letras y palabras con líneas guía.",icon:BookOpen,href:"/plantillas?template=letter-tracing-worksheet"}
+ {title:"Práctica de letras",detail:"Hojas para repasar letras y palabras con líneas guía.",icon:BookOpen,href:"/plantillas?template=letter-tracing-worksheet"},
+ {title:"Aprender jugando",detail:"Fichas de letras, números, conteo, sumas, restas y formas para niños.",icon:BookOpen,href:"/plantillas/imprimibles?categoria=Aprendizaje%20infantil"}
 ];
 export default function InicioPlantillas(){
  return <main className="min-h-screen bg-[#faf9f6] text-[#282824]">
@@ -36,7 +37,7 @@ export default function InicioPlantillas(){
  <section className="border-t border-stone-200 bg-white py-14">
   <div className="mx-auto max-w-7xl px-6">
    <div className="mb-7 flex flex-wrap items-end justify-between gap-3"><div><p className="mb-2 text-xs uppercase tracking-widest text-blue-800">Catálogo</p><h2 className="font-serif text-3xl">Encontrá tu próxima plantilla</h2></div><Link href="/plantillas/catalogo" className="inline-flex items-center gap-1 text-sm font-semibold text-blue-900">Ver todo <ArrowRight size={15}/></Link></div>
-   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{sections.map(item=><Link key={item.title} href={item.href} className="group rounded-xl border border-stone-200 p-5 transition hover:border-blue-500 hover:shadow-md"><item.icon className="mb-5 h-7 w-7 text-blue-900"/><h3 className="font-serif text-xl">{item.title}</h3><p className="mt-2 text-sm leading-6 text-stone-600">{item.detail}</p><span className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-blue-900">Abrir <ArrowRight size={14}/></span></Link>)}</div>
+   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">{sections.map(item=><Link key={item.title} href={item.href} className="group rounded-xl border border-stone-200 p-5 transition hover:border-blue-500 hover:shadow-md"><item.icon className="mb-5 h-7 w-7 text-blue-900"/><h3 className="font-serif text-xl">{item.title}</h3><p className="mt-2 text-sm leading-6 text-stone-600">{item.detail}</p><span className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-blue-900">Abrir <ArrowRight size={14}/></span></Link>)}</div>
   </div>
  </section>
  <section className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-5 px-6 py-12"><div><h2 className="font-serif text-2xl">Prepará un paquete de impresión</h2><p className="mt-2 text-sm text-stone-500">Combiná varias hojas y guardalas como PDF desde el navegador.</p></div><Link href="/plantillas?panel=paquete" className="inline-flex items-center gap-2 rounded-lg border border-blue-900 px-5 py-3 font-semibold text-blue-900"><Printer size={17}/> Ir al paquete</Link></section>

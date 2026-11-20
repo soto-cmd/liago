@@ -29,24 +29,26 @@ export default function CatalogoClient({mode}:{mode:Mode}){
  useEffect(()=>{const q=new URLSearchParams(window.location.search);const item=q.get("categoria");if(item&&variantFamilies.some(f=>f.name===item))setCategory(item)},[]);
  const curated=[
   {title:"Planificación y organización",body:"Organizá tus citas, prioridades y tareas en un mismo lugar.",template:"plan-semanal",family:"Papel pautado"},
-  {title:"Imprimibles para aprender",body:"Hojas para practicar letras, escritura y matemáticas.",template:"letter-tracing-worksheet",family:"Hoja de trazado de nombres"},
+  {title:"Imprimibles para aprender",body:"Hojas para practicar letras, escritura y matemáticas.",template:"aprender-inicial",family:"Aprendizaje infantil"},
   {title:"Hogar y familia",body:"Listas, tareas y registros que simplifican el día a día.",template:"tareas-ninos",family:"Tabla de tareas para niños"},
   {title:"Trabajo y proyectos",body:"Presupuestos, seguimientos, hojas técnicas y notas.",template:"presupuesto",family:"Hoja de presupuesto"},
   {title:"Música y aficiones",body:"Pentagramas, tablaturas y hojas de composición.",template:"pentagrama",family:"Papel pautado manuscrito"}
  ];
+ const learningTemplates=entries.filter(e=>e.group==="Aprendizaje infantil");
+ const filteredLearning=learningTemplates.filter(e=>`${e.name} ${e.group}`.toLowerCase().includes(search.toLowerCase()));
  const perPage=24;
  const groups=Array.from(new Set(entries.map(e=>e.group)));
  const visibleTemplates=entries.filter(e=>(category==="Todas"||category===e.group)&&(`${e.name} ${e.group}`.toLowerCase().includes(search.toLowerCase())));
  const visibleVariants=paperVariants.filter(v=>(category==="Todas"||category===v.family)&&(`${v.name} ${v.family}`.toLowerCase().includes(search.toLowerCase())));
- const categories=mode==="plantillas"?groups:variantFamilies.map(f=>f.name);
- const itemsCount=mode==="plantillas"?visibleTemplates.length:visibleVariants.length;
- const paged=visibleVariants.slice(page*perPage,(page+1)*perPage);
+ const categories=mode==="plantillas"?groups:["Aprendizaje infantil",...variantFamilies.map(f=>f.name)];
+ const itemsCount=mode==="plantillas"?visibleTemplates.length:category==="Aprendizaje infantil"?filteredLearning.length:visibleVariants.length;
+ const paged=category==="Aprendizaje infantil"?[]:visibleVariants.slice(page*perPage,(page+1)*perPage);
  const setFilter=(value:string)=>{setCategory(value);setPage(0);setRowOffset({});};
  const selection=<aside className="w-full shrink-0 border-b border-stone-200 bg-[#faf9f6] px-5 py-6 lg:sticky lg:top-[68px] lg:h-[calc(100vh-68px)] lg:w-72 lg:overflow-y-auto lg:border-b-0 lg:border-r">
   <label className="text-sm font-medium">Buscar {mode==="plantillas"?"plantillas":"una familia de papel"}</label>
   <div className="relative mt-3"><Search size={16} className="absolute left-3 top-3 text-stone-400"/><input value={search} onChange={e=>{setSearch(e.target.value);setPage(0)}} className="w-full rounded-lg border border-stone-200 bg-white py-2.5 pl-10 pr-3 text-sm outline-none focus:border-blue-800" placeholder="Busca por nombre o uso"/></div>
   <h2 className="mb-3 mt-7 text-xs font-semibold text-stone-500">Categorías</h2>
-  <div className="flex gap-2 overflow-x-auto pb-2 lg:block lg:space-y-0.5">{["Todas",...categories].map(label=><button key={label} onClick={()=>setFilter(label)} className={`flex w-auto shrink-0 items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm lg:w-full lg:whitespace-normal ${category===label?"border-l-[3px] border-blue-900 bg-[#f0ece4] font-semibold text-blue-900":"hover:bg-stone-100"}`}><span>{label}</span><span className="text-xs text-stone-400">{label==="Todas"?(mode==="plantillas"?entries.length:variantTotal):mode==="plantillas"?entries.filter(e=>e.group===label).length:variantFamilies.find(f=>f.name===label)?.count}</span></button>)}</div>
+  <div className="flex gap-2 overflow-x-auto pb-2 lg:block lg:space-y-0.5">{["Todas",...categories].map(label=><button key={label} onClick={()=>setFilter(label)} className={`flex w-auto shrink-0 items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm lg:w-full lg:whitespace-normal ${category===label?"border-l-[3px] border-blue-900 bg-[#f0ece4] font-semibold text-blue-900":"hover:bg-stone-100"}`}><span>{label}</span><span className="text-xs text-stone-400">{label==="Todas"?(mode==="plantillas"?entries.length:variantTotal+learningTemplates.length):mode==="plantillas"?entries.filter(e=>e.group===label).length:label==="Aprendizaje infantil"?learningTemplates.length:variantFamilies.find(f=>f.name===label)?.count}</span></button>)}</div>
  </aside>;
  return <main className="min-h-screen bg-[#faf9f6] text-[#242424]">
  <PlantillasNav active={mode==="plantillas"?"plantillas":"imprimibles"}/>
@@ -56,7 +58,7 @@ export default function CatalogoClient({mode}:{mode:Mode}){
  <div className="border-b border-stone-200 pb-6">
  <p className="text-xs font-semibold uppercase tracking-widest text-blue-900">{mode==="plantillas"?"Plantillas":"Imprimibles"}</p>
  <h1 className="mt-3 font-serif text-3xl leading-tight sm:text-5xl">{mode==="plantillas"?"Plantillas de papel imprimibles gratis":"Imprimibles para aprender, trabajar y organizarse"}</h1>
- <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-stone-600"><p>{mode==="plantillas"?"Elegí una estructura y después el tamaño, las medidas y la orientación.":"Seleccioná una variante y personalizala en el editor de Liago."}</p><span>{mode==="plantillas"?`${entries.length} plantillas editables · ${variantTotal} variantes`:`${variantFamilies.length} familias · ${variantTotal} variantes`}</span></div>
+ <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-stone-600"><p>{mode==="plantillas"?"Elegí una estructura y después el tamaño, las medidas y la orientación.":"Seleccioná una variante y personalizala en el editor de Liago."}</p><span>{mode==="plantillas"?`${entries.length} plantillas editables · ${variantTotal} variantes`:`${variantFamilies.length+1} familias · ${variantTotal+learningTemplates.length} opciones`}</span></div>
  </div>
  {mode==="imprimibles"&&category==="Todas"&&!search&&<section className="border-b border-stone-200 py-8">
  <nav aria-label="Secciones de imprimibles" className="mb-7 flex flex-wrap gap-x-7 gap-y-2 text-sm text-stone-600">{curated.map(group=><a href={"#"+group.title.replaceAll(" ","-")} key={group.title} className="hover:text-blue-900">{group.title}</a>)}</nav>
@@ -87,12 +89,26 @@ export default function CatalogoClient({mode}:{mode:Mode}){
  </div>:
  <div className="py-9">
  <div className="mb-6 flex flex-wrap items-center justify-between gap-3"><h2 className="font-serif text-2xl">{category==="Todas"?"Todas las variantes":category}</h2><span className="text-xs text-stone-500">{itemsCount} opciones · Medidas en mm</span></div>
+ {(category==="Todas"||category==="Aprendizaje infantil")&&<section className="mb-10">
+ <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+ <div><h3 className="font-serif text-2xl">Imprimibles para aprender</h3><p className="mt-1 text-xs text-stone-500">Letras, números, matemáticas y reconocimiento visual. Editables y gratuitos.</p></div>
+ {category==="Todas"&&<button type="button" onClick={()=>setFilter("Aprendizaje infantil")} className="text-sm font-semibold text-blue-900">Ver todas las actividades</button>}
+ </div>
+ <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+ {filteredLearning.map(e=><Link key={e.id} href={`/plantillas?template=${encodeURIComponent(e.id)}`} className="group min-w-0">
+ <Preview template={e.id}/>
+ <p className="mt-2 font-serif text-base group-hover:text-blue-900">{e.name}</p>
+ <p className="mt-1 text-xs text-stone-500">Aprendizaje infantil · A4 o Carta</p>
+ </Link>)}
+ </div>
+ {filteredLearning.length===0&&<p className="py-6 text-sm text-stone-500">No se encontraron actividades educativas.</p>}
+ </section>}
  <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">{paged.map(v=><Link key={v.id} href={`/plantillas?variant=${encodeURIComponent(v.id)}`} className="group min-w-0">
  <Preview template={v.template} paper={v.paper} spacing={v.spacing} margin={v.margin} ink={v.ink} landscape={v.landscape}/>
  <p className="mt-2 font-serif text-base group-hover:text-blue-900">{v.name}</p><p className="mt-1 text-xs text-stone-500">{v.family} · {v.paper}</p>
  </Link>)}</div>
- {!paged.length&&<p className="rounded-xl border p-8 text-stone-500">No se encontraron resultados.</p>}
- {itemsCount>perPage&&<div className="mt-8 flex items-center justify-center gap-3 text-sm"><button disabled={page===0} onClick={()=>{setPage(v=>Math.max(0,v-1));window.scrollTo({top:0,behavior:"smooth"})}} className="rounded-lg border px-3 py-2 disabled:opacity-30">Anterior</button><span>{page+1} de {Math.ceil(itemsCount/perPage)}</span><button disabled={(page+1)*perPage>=itemsCount} onClick={()=>{setPage(v=>v+1);window.scrollTo({top:0,behavior:"smooth"})}} className="rounded-lg border px-3 py-2 disabled:opacity-30">Siguiente</button></div>}
+ {category!=="Aprendizaje infantil"&&!paged.length&&<p className="rounded-xl border p-8 text-stone-500">No se encontraron resultados.</p>}
+ {category!=="Aprendizaje infantil"&&itemsCount>perPage&&<div className="mt-8 flex items-center justify-center gap-3 text-sm"><button disabled={page===0} onClick={()=>{setPage(v=>Math.max(0,v-1));window.scrollTo({top:0,behavior:"smooth"})}} className="rounded-lg border px-3 py-2 disabled:opacity-30">Anterior</button><span>{page+1} de {Math.ceil(itemsCount/perPage)}</span><button disabled={(page+1)*perPage>=itemsCount} onClick={()=>{setPage(v=>v+1);window.scrollTo({top:0,behavior:"smooth"})}} className="rounded-lg border px-3 py-2 disabled:opacity-30">Siguiente</button></div>}
  </div>}
  <footer className="mt-10 border-t border-stone-200 py-6 text-center text-xs text-stone-500">Liago · Creado por Adrián Soto</footer>
  </div></div></main>;
