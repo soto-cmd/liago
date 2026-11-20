@@ -22,11 +22,11 @@ export default function CatalogoClient({mode}:{mode:Mode}){
  const [rowOffset,setRowOffset]=useState<Record<string,number>>({});
  useEffect(()=>{const q=new URLSearchParams(window.location.search);const item=q.get("categoria");const term=q.get("buscar");if(term)setSearch(term);if(item&&categories.some(c=>c.id===item))setCategory(item);else if(item&&mode==="imprimibles"&&variantFamilies.some(f=>f.name===item)){setFamily(item);const variant=paperVariants.find(v=>v.family===item);if(variant)setCategory(categoryForVariant(variant))}},[mode]);
  const curated=[
-  {title:"Planificación y organización",body:"Organizá tus citas, prioridades y tareas en un mismo lugar.",template:"plan-semanal",family:"Papel pautado"},
-  {title:"Imprimibles para aprender",body:"Hojas para practicar letras, escritura y matemáticas.",template:"letter-tracing-worksheet",family:"Hoja de trazado de nombres"},
-  {title:"Hogar y familia",body:"Listas, tareas y registros que simplifican el día a día.",template:"tareas-ninos",family:"Tabla de tareas para niños"},
-  {title:"Trabajo y proyectos",body:"Presupuestos, seguimientos, hojas técnicas y notas.",template:"presupuesto",family:"Hoja de presupuesto"},
-  {title:"Música y aficiones",body:"Pentagramas, tablaturas y hojas de composición.",template:"pentagrama",family:"Papel pautado manuscrito"}
+  {title:"Planificación y organización",body:"Organizá tus citas, prioridades y tareas en un mismo lugar.",template:"plan-semanal",category:"planificacion"},
+  {title:"Imprimibles para aprender",body:"Hojas para practicar letras, escritura y matemáticas.",template:"letter-tracing-worksheet",category:"aprendizaje"},
+  {title:"Hogar y familia",body:"Listas, tareas y registros que simplifican el día a día.",template:"tareas-ninos",category:"hogar"},
+  {title:"Trabajo y proyectos",body:"Presupuestos, seguimientos, hojas técnicas y notas.",template:"presupuesto",category:"trabajo"},
+  {title:"Música y aficiones",body:"Pentagramas, tablaturas y hojas de composición.",template:"pentagrama",category:"musica"}
  ];
 
  const perPage=24;
@@ -44,8 +44,8 @@ export default function CatalogoClient({mode}:{mode:Mode}){
   <label htmlFor="liago-catalog-search" className="text-sm font-bold text-stone-800">Buscar {mode==="plantillas"?"plantillas":"imprimibles"}</label>
   <div className="relative mt-2">
    <Search size={17} className="pointer-events-none absolute left-3 top-3 text-stone-400"/>
-   <input id="liago-catalog-search" type="search" value={search} onChange={e=>{setSearch(e.target.value);setPage(0);setRowOffset({})}} className="w-full rounded-lg border border-stone-300 bg-white py-2.5 pl-10 pr-9 text-sm outline-none focus:border-blue-800 focus:ring-2 focus:ring-blue-100" placeholder={mode==="plantillas"?"Ej. hábitos, agenda, notas":"Ej. rayado, puntos, A4"}/>
-   {search&&<button type="button" aria-label="Borrar búsqueda" onClick={()=>{setSearch("");setPage(0)}} className="absolute right-2 top-2 rounded p-1 text-stone-500 hover:text-blue-900"><X size={17}/></button>}
+   <input id="liago-catalog-search" type="search" value={search} onChange={e=>{setSearch(e.target.value);setCategory("Todas");setFamily("Todas");setPage(0);setRowOffset({})}} className="w-full rounded-lg border border-stone-300 bg-white py-2.5 pl-10 pr-9 text-sm outline-none focus:border-blue-800 focus:ring-2 focus:ring-blue-100" placeholder={mode==="plantillas"?"Ej. hábitos, agenda, notas":"Ej. rayado, puntos, A4"}/>
+   {search&&<button type="button" aria-label="Borrar búsqueda" onClick={()=>{setSearch("");setCategory("Todas");setFamily("Todas");setPage(0)}} className="absolute right-2 top-2 rounded p-1 text-stone-500 hover:text-blue-900"><X size={17}/></button>}
   </div>
   <p className="mt-2 text-xs leading-5 text-stone-500">Por nombre o uso, incluso sin tildes.</p>
   <div className="mt-3 flex flex-wrap gap-1.5">
@@ -53,7 +53,7 @@ export default function CatalogoClient({mode}:{mode:Mode}){
   </div>
   <div className="mt-6 flex items-center justify-between gap-2"><h2 className="text-xs font-bold uppercase tracking-wide text-stone-600">Categorías</h2>{(category!=="Todas"||family!=="Todas"||search)&&<button type="button" onClick={reset} className="text-xs font-semibold text-blue-900 hover:underline">Limpiar filtros</button>}</div>
   <nav aria-label="Filtrar por categoría" className="mt-3 flex gap-2 overflow-x-auto pb-2 lg:block lg:space-y-0.5">
-   {[{id:"Todas",name:"Todas las categorías"},...categories].map(item=><button key={item.id} type="button" aria-pressed={category===item.id} onClick={()=>setFilter(item.id)} className={`flex shrink-0 items-center justify-between gap-2 rounded-md border px-3 py-2 text-left text-xs transition lg:w-full lg:text-sm ${category===item.id?"border-blue-900 bg-blue-50 font-bold text-blue-900":"border-transparent bg-white text-stone-700 hover:border-stone-300 hover:bg-stone-100"}`}><span>{item.name}</span><span className="rounded bg-stone-100 px-1.5 py-0.5 text-[11px] text-stone-500">{countFor(item.id)}</span></button>)}
+   {[{id:"Todas",name:"Todas las categorías"},...categories.filter(c=>mode==="plantillas"||countFor(c.id)>0)].map(item=><button key={item.id} type="button" aria-pressed={category===item.id} onClick={()=>setFilter(item.id)} className={`flex shrink-0 items-center justify-between gap-2 rounded-md border px-3 py-2 text-left text-xs transition lg:w-full lg:text-sm ${category===item.id?"border-blue-900 bg-blue-50 font-bold text-blue-900":"border-transparent bg-white text-stone-700 hover:border-stone-300 hover:bg-stone-100"}`}><span>{item.name}</span><span className="rounded bg-stone-100 px-1.5 py-0.5 text-[11px] text-stone-500">{countFor(item.id)}</span></button>)}
   </nav>
   {mode==="imprimibles"&&<div className="mt-5 border-t border-stone-200 pt-4">
    <label htmlFor="liago-family-filter" className="block text-xs font-semibold text-stone-700">Tipo de papel</label>
@@ -80,7 +80,7 @@ export default function CatalogoClient({mode}:{mode:Mode}){
  <div className="mx-auto max-w-72 -rotate-1 bg-white shadow-lg"><Preview template={group.template}/></div>
  </Link>
  <h2 className="mt-4 font-serif text-2xl">{group.title}</h2><p className="mt-2 text-sm text-stone-600">{group.body}</p>
- <Link href={`/plantillas/imprimibles?categoria=${encodeURIComponent(group.family)}`} className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-blue-900">Ver opciones <ArrowUpRight size={15}/></Link>
+ <Link href={`/plantillas/catalogo?categoria=${encodeURIComponent(group.category)}`} className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-blue-900">Ver opciones <ArrowUpRight size={15}/></Link>
  </article>)}</div></section>}
  {mode==="plantillas"?
  <div className="space-y-10 py-7">
