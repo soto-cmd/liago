@@ -1,6 +1,6 @@
 import Link from "next/link";
 import PlantillasNav from "../nav";
-import {ArrowRight,BookOpen,CalendarDays,Grid3X3,Layers,PenLine,Printer} from "lucide-react";
+import {ArrowRight,BookOpen,CalendarDays,Grid3X3,Mail,MessageCircle,PenLine,Printer} from "lucide-react";
 
 const sections=[
  {title:"Planificadores",detail:"Planes diarios, semanales, mensuales y anuales con calendario automático.",icon:CalendarDays,href:"/plantillas?template=plan-semanal"},
@@ -40,6 +40,21 @@ export default function InicioPlantillas(){
   </div>
  </section>
  <section className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-5 px-6 py-12"><div><h2 className="font-serif text-2xl">Prepará un paquete de impresión</h2><p className="mt-2 text-sm text-stone-500">Combiná varias hojas y guardalas como PDF desde el navegador.</p></div><Link href="/plantillas?panel=paquete" className="inline-flex items-center gap-2 rounded-lg border border-blue-900 px-5 py-3 font-semibold text-blue-900"><Printer size={17}/> Ir al paquete</Link></section>
+ <section id="solicitar-plantilla" className="border-t border-stone-200 bg-white py-14">
+ <div className="mx-auto grid max-w-7xl gap-8 px-6 lg:grid-cols-[1fr_auto] lg:items-center">
+  <div>
+   <p className="mb-2 text-xs font-bold uppercase tracking-widest text-blue-900">Contacto y sugerencias</p>
+   <h2 className="font-serif text-3xl tracking-tight sm:text-4xl">¿Necesitás una plantilla que todavía no tenemos?</h2>
+   <p className="mt-3 max-w-2xl text-sm leading-6 text-stone-600">Podés solicitar nuevas plantillas imprimibles gratuitamente o compartir ideas para mejorar las existentes. Contame qué tipo de hoja necesitás y para qué la vas a utilizar.</p>
+   <p className="mt-4 text-sm text-stone-600">Contacto directo con <strong className="text-stone-800">Adrián Soto</strong>, creador de Liago.</p>
+  </div>
+  <div className="flex w-full flex-col gap-3 sm:w-auto">
+   <a href="https://wa.me/595971643485?text=Hola%20Adri%C3%A1n%2C%20quisiera%20solicitar%20una%20nueva%20plantilla%20para%20Liago." target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-900 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-800"><MessageCircle size={18}/> Solicitar por WhatsApp</a>
+   <a href="mailto:l.adrian.soto@gmail.com?subject=Solicitud%20de%20plantilla%20-%20Liago" className="inline-flex items-center justify-center gap-2 rounded-lg border border-stone-300 px-5 py-3 text-sm font-semibold text-stone-800 hover:border-blue-900"><Mail size={18}/> Solicitar por correo</a>
+   <p className="text-center text-xs text-stone-500">WhatsApp: 0971 643 485</p>
+   <p className="text-center text-xs text-stone-500">l.adrian.soto@gmail.com</p>
+  </div>
+ </div></section>
  <footer className="border-t border-stone-200 px-6 py-7 text-center text-sm text-stone-500">Liago · Creado por Adrián Soto · Medidas en milímetros</footer>
  </main>;
 }
