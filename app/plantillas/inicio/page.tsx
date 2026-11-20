@@ -1,6 +1,6 @@
 import Link from "next/link";
 import PlantillasNav from "../nav";
-import {ArrowRight,BookOpen,CalendarDays,Grid3X3,Mail,MessageCircle,PenLine,Printer} from "lucide-react";
+import {ArrowRight,BookOpen,CalendarDays,Grid3X3,Mail,MessageCircle,PenLine,Printer,Search} from "lucide-react";
 
 const sections=[
  {title:"Planificadores",detail:"Planes diarios, semanales, mensuales y anuales con calendario automático.",icon:CalendarDays,href:"/plantillas?template=plan-semanal"},
@@ -20,6 +20,14 @@ export default function InicioPlantillas(){
     <Link href="/plantillas/catalogo" className="inline-flex items-center gap-2 rounded-lg bg-blue-900 px-5 py-3 font-semibold text-white">Explorar plantillas <ArrowRight size={17}/></Link>
     <Link href="/plantillas" className="inline-flex items-center gap-2 rounded-lg border border-stone-300 bg-white px-5 py-3 font-semibold">Abrir editor</Link>
    </div>
+   <form role="search" action="/plantillas/catalogo" method="get" className="mt-7 max-w-lg">
+    <label htmlFor="buscar-plantilla-inicio" className="mb-2 block text-sm font-semibold text-stone-700">¿Qué plantilla necesitás?</label>
+    <div className="flex overflow-hidden rounded-lg border border-stone-300 bg-white shadow-sm focus-within:border-blue-800 focus-within:ring-2 focus-within:ring-blue-100">
+     <Search size={19} className="ml-3 mt-3 shrink-0 text-stone-400"/>
+     <input id="buscar-plantilla-inicio" type="search" name="buscar" placeholder="Ej. registro de hábitos, agenda, notas" className="min-w-0 flex-1 px-3 py-3 text-sm outline-none"/>
+     <button type="submit" className="bg-blue-900 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-800">Buscar</button>
+    </div>
+   </form>
    <p className="mt-8 text-sm text-stone-500">Una herramienta de Liago · Creado por <strong className="text-stone-700">Adrián Soto</strong>.</p>
   </div>
   <div className="relative flex min-h-[440px] items-center justify-center overflow-hidden rounded-2xl border border-stone-200 bg-[#f1ede5] p-7 sm:min-h-[560px]" style={{backgroundImage:"linear-gradient(#c8ced033 1px, transparent 1px),linear-gradient(90deg,#c8ced033 1px, transparent 1px)",backgroundSize:"20px 20px"}}>
