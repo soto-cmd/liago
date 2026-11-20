@@ -4,15 +4,15 @@ export type PaperVariant = {
 };
 type Family = {family:string;template:string;count:number;names:string[];spaces?:number[];papers?:string[];style?:string};
 const families:Family[]=[
- {family:"Papel pautado",template:"pautado",count:75,names:["College ruled","Wide ruled","Narrow ruled","Papel con margen","Papel de composición","Papel de recambio","Papel para reportero","Papel primario","Papel de cuaderno"],spaces:[5,6.35,7.1,8.7,10],papers:["A4","Carta","A5","Oficio","A3"]},
- {family:"Cuadrícula de puntos",template:"puntos",count:41,names:["Puntos finos","Dot grid 5 mm","Puntos 1/4 pulgada","Puntos 1/3 pulgada","Puntos media pulgada"],spaces:[3,4,5,5.08,6.35,8.47,10,12.7],papers:["A4","Carta","A5","A3"]},
+ {family:"Papel pautado",template:"pautado",count:75,names:["Rayado 7,1 mm","Rayado ancho 8,7 mm","Rayado estrecho 5 mm","Papel con margen","Papel de composición","Papel de recambio","Papel para reportero","Papel primario","Papel de cuaderno"],spaces:[5,6.35,7.1,8.7,10],papers:["A4","Carta","A5","Oficio","A3"]},
+ {family:"Cuadrícula de puntos",template:"puntos",count:41,names:["Puntos finos 3 mm","Puntos 5 mm","Puntos 6,35 mm","Puntos 8,47 mm","Puntos 12,7 mm"],spaces:[3,4,5,5.08,6.35,8.47,10,12.7],papers:["A4","Carta","A5","A3"]},
  {family:"Blanco y listas",template:"blanco",count:5,names:["Papel blanco","Lista de comprobación","Lista pautada","Lista numerada","Lista de tareas"]},
  {family:"Reportero y taquigrafía",template:"gregg",count:3,names:["Papel Gregg","Papel de reportero","Papel de taquigrafía"]},
  {family:"Cuadrícula cuadrada",template:"cuadricula",count:152,names:["Cuadrícula estándar","Cuadrícula de guías gruesas","Cuadrícula milimetrada","Cuadrícula para diseño"],spaces:[2,2.5,3,4,5,5.08,6.35,8.47,10,12.7,25.4],papers:["A4","Carta","A5","Oficio","A3","A6"]},
  {family:"Planos de coordenadas",template:"cartesiano",count:3,names:["Papel cartesiano","Plano cartesiano","Primer cuadrante"]},
  {family:"Rectas numéricas",template:"recta",count:4,names:["Recta numérica en blanco","Recta numérica hasta 100","Recta de fracciones (octavos)","Recta numérica escolar"]},
  {family:"Cuadrículas con líneas guía",template:"tecnico",count:2,names:["Papel para punto de cruz","Papel técnico (cada 5 en negrita)"]},
- {family:"Cuadrículas isométricas",template:"isometrico",count:5,names:["Puntos isométricos 5 mm","Puntos isométricos 1/4 pulgada","Papel isométrico de líneas","Puntos isométricos gris","Papel isométrico técnico"]},
+ {family:"Cuadrículas isométricas",template:"isometrico",count:5,names:["Puntos isométricos 5 mm","Puntos isométricos 6,35 mm","Papel isométrico de líneas","Puntos isométricos gris","Papel isométrico técnico"]},
  {family:"Papel logarítmico",template:"logaritmico",count:4,names:["Papel logarítmico","Semi-log eje Y","Semi-log eje X","Log-log (1 década)"]},
  {family:"Hoja de trazado de nombres",template:"trazado-nombre",count:3,names:["Trazado de letras","Trazado de nombres","Trazado de números"]},
  {family:"Hoja de trazado de líneas",template:"trazado-lineas",count:5,names:["Práctica cursiva","D'Nealian","Papel infantil","Papel preescolar","Pauta de escritura triple"]},
