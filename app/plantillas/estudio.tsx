@@ -27,7 +27,7 @@ const fmt=(v:number)=>Number(v.toFixed(3));
 const MONTHS=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 const WEEKDAYS=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
 const dateISO=(d:Date)=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");
-const parseISO=(iso:string)=>{const m=/^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(iso);if(!m)return new Date();const y=Number(m[1]),month=Number(m[2]),day=Number(m[3]);if(y<1900||y>2100||month<1||month>12)return new Date();return new Date(y,month-1,Math.min(day,new Date(y,month,0).getDate()));};
+const parseISO=(iso:string)=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);if(!m)return new Date();const y=Number(m[1]),month=Number(m[2]),day=Number(m[3]);if(y<1900||y>2100||month<1||month>12)return new Date();return new Date(y,month-1,Math.min(day,new Date(y,month,0).getDate()));};
 const changePeriod=(d:Date,year:number,month:number)=>new Date(year,month,Math.min(d.getDate(),new Date(year,month+1,0).getDate()));
 const isoMonday=(d:Date)=>{const start=new Date(d.getFullYear(),d.getMonth(),d.getDate());start.setDate(start.getDate()-(start.getDay()+6)%7);return start;};
 const shortDate=(d:Date)=>`${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
