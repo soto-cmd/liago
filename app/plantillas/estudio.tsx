@@ -1,11 +1,12 @@
 "use client";
 import Link from "next/link";
+import PlantillasNav from "./nav";
 import {paperVariants,variantFamilies,variantTotal} from "./variantes";
 import {makeTracingSvg,type TraceSettings} from "./tracing";
 import {useEffect,useMemo,useState} from "react";
 import {ArrowLeft,Bookmark,ChevronDown,Download,FilePlus2,Layers,Minus,Plus,Printer,RotateCcw,Share2,Trash2,ArrowUp,ArrowDown} from "lucide-react";
 type Template={id:string;name:string;group:string;mode:string};
-const entries:Template[]=[
+export const entries:Template[]=[
 ["plan-semanal","Plan semanal","Planificación","weekly"],["plan-diario","Plan diario","Planificación","daily"],["plan-proyecto","Plan de proyecto","Planificación","project"],["plan-mensual","Plan mensual","Planificación","monthly"],["plan-anual","Plan anual","Planificación","yearly"],["sprint","Sprint de objetivo","Planificación","goals"],["reto","Seguimiento de reto","Planificación","track"],["habitos","Seguimiento de hábitos","Planificación","habit"],
 ["lista-lectura","Lista de lectura","Lectura","ledger"],["notas-libro","Notas de libro","Lectura","notes"],["seguimiento-lectura","Seguimiento de lectura","Lectura","track"],
 ["peliculas","Registro de películas","Registros","ledger"],["plantas","Ficha de planta","Registros","notes"],["entrenamiento","Registro de entrenamiento","Registros","ledger"],["receta","Prueba de receta","Registros","notes"],
@@ -21,7 +22,7 @@ const entries:Template[]=[
 ].map(([id,name,group,mode])=>({id,name,group,mode}));
 const sizes:Record<string,[number,number]>={A4:[210,297],A5:[148,210],Carta:[215.9,279.4],Oficio:[215.9,330.2],A3:[297,420],A6:[105,148]};
 type Sheet=TraceSettings & {id:number;variantId?:string;template:string;paper:string;landscape:boolean;margin:number;spacing:number;ink:string;background:string;heading:string;subtitle:string;date:string;calendarDate?:string;calendarAuto?:boolean;};
-const initial:Sheet={id:1,template:"plan-mensual",paper:"A4",landscape:false,margin:13,spacing:7,ink:"#333f53",background:"#ffffff",heading:"",subtitle:"",date:"",traceInput:"A",traceMode:"both",traceSize:"medium",dashedCopies:"half",traceFont:"rounded",showNameLine:true,showDateLine:true,showFooterMark:true};
+export const initial:Sheet={id:1,template:"plan-mensual",paper:"A4",landscape:false,margin:13,spacing:7,ink:"#333f53",background:"#ffffff",heading:"",subtitle:"",date:"",traceInput:"A",traceMode:"both",traceSize:"medium",dashedCopies:"half",traceFont:"rounded",showNameLine:true,showDateLine:true,showFooterMark:true};
 const esc=(v:string)=>v.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]||c));
 const fmt=(v:number)=>Number(v.toFixed(3));
 const MONTHS=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
@@ -33,7 +34,7 @@ const isoMonday=(d:Date)=>{const start=new Date(d.getFullYear(),d.getMonth(),d.g
 const shortDate=(d:Date)=>`${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 const planningMode=(mode:string)=>["daily","weekly","monthly","calendar","yearly"].includes(mode);
 
-function svgFor(s:Sheet){
+export function svgFor(s:Sheet){
  const [pw,ph]=sizes[s.paper]||sizes.A4,[w,h]=s.landscape?[ph,pw]:[pw,ph],m=s.margin,R=w-m,B=h-m,ww=R-m,hh=B-(m+18),sp=s.spacing,ink=s.ink;
  let t=m+18;
  const mode=entries.find(x=>x.id===s.template)?.mode||"ruled",name=entries.find(x=>x.id===s.template)?.name||"Plantilla";
@@ -165,18 +166,9 @@ export default function Estudio(){
  const exportSvg=()=>save(new Blob([art.svg],{type:"image/svg+xml;charset=utf-8"}),"Liago "+template.name+".svg");
  const exportPng=async()=>{setBusy(true);try{const blob=new Blob([art.svg],{type:"image/svg+xml"}),url=URL.createObjectURL(blob),img=new Image();try{await new Promise<void>((ok,no)=>{img.onload=()=>ok();img.onerror=()=>no(Error("Error al renderizar"));img.src=url});const canvas=document.createElement("canvas");canvas.width=Math.round(art.w*300/25.4);canvas.height=Math.round(art.h*300/25.4);canvas.getContext("2d")?.drawImage(img,0,0,canvas.width,canvas.height);const png=await new Promise<Blob>((ok,no)=>canvas.toBlob(b=>b?ok(b):no(Error("PNG no disponible")),"image/png"));save(png,"Liago "+template.name+".png")}finally{URL.revokeObjectURL(url)}}catch{setError("No se pudo exportar PNG.")}finally{setBusy(false)}};
  const copy=async()=>{const p=new URLSearchParams({template:current.template,paper:current.paper});try{await navigator.clipboard.writeText(location.origin+"/plantillas?"+p);setError("Enlace copiado.")}catch{setError("No fue posible copiar el enlace.")}};
- useEffect(()=>{const q=new URLSearchParams(location.search),id=q.get("template"),p=q.get("paper"),catalog=q.get("catalog"),panel=q.get("panel");if(id&&entries.some(x=>x.id===id))setPages(v=>v.map((s,i)=>i===0?{...s,template:id,paper:p&&sizes[p]?p:s.paper}:s));if(catalog==="plantillas"||catalog==="variantes"){setGalleryMode(catalog);setGalleryTab("Todas");setGalleryPage(0);setGalleryOpen(true)}if(panel==="paquete")window.requestAnimationFrame(()=>document.getElementById("liago-print-package")?.scrollIntoView({behavior:"smooth",block:"start"}))},[]);
+ useEffect(()=>{const q=new URLSearchParams(location.search),id=q.get("template"),p=q.get("paper"),variant=q.get("variant"),catalog=q.get("catalog"),panel=q.get("panel");if(id&&entries.some(x=>x.id===id))setPages(v=>v.map((s,i)=>i===0?{...s,template:id,paper:p&&sizes[p]?p:s.paper}:s));if(variant){const item=paperVariants.find(v=>v.id===variant);if(item)setPages(v=>v.map((s,i)=>i===0?{...s,variantId:item.id,template:item.template,paper:item.paper,landscape:item.landscape,margin:item.margin,spacing:item.spacing,ink:item.ink,subtitle:item.subtitle||""}:s))}if(catalog==="plantillas"||catalog==="variantes"){setGalleryMode(catalog);setGalleryTab("Todas");setGalleryPage(0);setGalleryOpen(true)}if(panel==="paquete")window.requestAnimationFrame(()=>document.getElementById("liago-print-package")?.scrollIntoView({behavior:"smooth",block:"start"}))},[]);
  return <main className="flex min-h-screen flex-col bg-[#f6f3ee] text-[#282824]">
- <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-2 border-b border-stone-200 bg-[#faf9f6] px-4 py-3 lg:px-9">
-<Link href="/plantillas/inicio" className="flex items-center gap-3 text-lg font-black"><span className="rounded bg-blue-800 px-2 py-1 text-sm text-white">L</span> LiaGo <span className="hidden text-xs font-normal text-stone-500 sm:inline">Plantillas imprimibles</span></Link>
-<nav aria-label="Navegación de plantillas" className="flex flex-wrap items-center gap-2 text-sm sm:gap-4">
-<Link href="/plantillas/inicio" className="rounded-md px-2 py-2 hover:text-blue-800">Inicio</Link>
-<button type="button" onClick={()=>{setGalleryMode("plantillas");setGalleryTab("Todas");setGalleryPage(0);setGalleryOpen(true)}} className="rounded-md px-2 py-2 hover:text-blue-800">Plantillas</button>
-<button type="button" onClick={()=>{setGalleryMode("variantes");setGalleryTab("Todas");setGalleryPage(0);setGalleryOpen(true)}} className="rounded-md px-2 py-2 hover:text-blue-800">Imprimibles</button>
-<button type="button" onClick={()=>{setGalleryOpen(false);document.getElementById("liago-editor")?.scrollIntoView({behavior:"smooth"})}} className="border-b-2 border-blue-800 px-2 py-2 font-semibold text-blue-900">Editor</button>
-<button type="button" onClick={()=>{setGalleryOpen(false);document.getElementById("liago-print-package")?.scrollIntoView({behavior:"smooth",block:"start"})}} className="flex items-center gap-2 rounded-lg border border-blue-800 px-3 py-2 font-semibold text-blue-900 hover:bg-blue-50"><Layers size={16}/> <span>Paquete de impresión</span><span className="rounded bg-stone-100 px-1.5 text-xs">{pages.length}</span></button>
-<span className="rounded-lg border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-stone-600">mm</span>
-</nav></header>
+ <PlantillasNav active="editor" packageCount={pages.length}/>
  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 bg-white px-5 py-4"><div><h1 className="text-lg font-semibold">{template.name} <ChevronDown className="inline" size={15}/></h1><p className="text-xs text-stone-500">{template.group} · {pages.length} {pages.length===1?"página":"páginas"}</p></div><div className="flex flex-wrap gap-2 text-sm"><button onClick={()=>{try{localStorage.setItem("liago-print-saved",JSON.stringify(pages));setError("Configuración guardada en este navegador.")}catch{setError("No se pudo guardar.")}}} className="rounded-lg border border-stone-200 px-3 py-2"><Bookmark className="mr-1 inline" size={16}/> Guardar receta</button><div className="relative"><button onClick={()=>setShowExport(!showExport)} className="rounded-lg border border-stone-200 px-3 py-2"><Share2 className="mr-1 inline" size={16}/> Compartir y formatos</button>{showExport&&<div className="absolute right-0 z-20 mt-1 w-52 rounded-lg border bg-white p-2 shadow-xl"><button onClick={copy} className="block w-full p-2 text-left hover:bg-stone-100">Copiar enlace</button><button onClick={exportSvg} className="block w-full p-2 text-left hover:bg-stone-100">Exportar SVG</button><button onClick={exportPng} disabled={busy} className="block w-full p-2 text-left hover:bg-stone-100">Exportar PNG</button><button onClick={()=>print()} className="block w-full p-2 text-left hover:bg-stone-100">Imprimir</button></div>}</div><button onClick={add} className="rounded-lg border border-blue-300 px-3 py-2 text-blue-900"><Layers className="mr-1 inline" size={16}/> Añadir al paquete</button><button onClick={()=>print()} className="rounded-lg bg-blue-900 px-4 py-2 font-semibold text-white"><Download className="mr-1 inline" size={16}/> Descargar PDF</button></div></div>
  {error&&<div role="status" className="border-b bg-amber-50 px-5 py-2 text-sm text-amber-900">{error}<button className="ml-3 underline" onClick={()=>setError("")}>Cerrar</button></div>}
  {galleryOpen&&<div role="dialog" aria-modal="true" aria-label="Catálogo de plantillas" className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-2 sm:p-5">
