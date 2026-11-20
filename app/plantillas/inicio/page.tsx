@@ -1,5 +1,5 @@
 import Link from "next/link";
-import {ArrowRight,BookOpen,CalendarDays,Grid3X3,Layers,PenLine,Printer,Ruler} from "lucide-react";
+import {ArrowRight,BookOpen,CalendarDays,Grid3X3,Layers,PenLine,Printer} from "lucide-react";
 
 const sections=[
  {title:"Planificadores",detail:"Planes diarios, semanales, mensuales y anuales con calendario automático.",icon:CalendarDays,href:"/plantillas?template=plan-semanal"},
