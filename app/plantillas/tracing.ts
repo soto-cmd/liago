@@ -18,7 +18,7 @@ export function makeTracingSvg(settings:TraceSettings & {heading:string;ink:stri
  const text=mode==="uppercase"?input[0].toLocaleUpperCase("es"):mode==="lowercase"?input[0].toLocaleLowerCase("es"):mode==="both"?input[0].toLocaleUpperCase("es")+input[0].toLocaleLowerCase("es"):input;
  const rowHeight=settings.traceSize==="large"?28:settings.traceSize==="small"?17:22;
  const fontSize=settings.traceSize==="large"?18:settings.traceSize==="small"?10.5:14;
- const font=settings.traceFont==="print"?"Arial,Helvetica,sans-serif":'"Trebuchet MS","Arial Rounded MT Bold",Arial,sans-serif';
+ const font=settings.traceFont==="print"?"Arial,Helvetica,sans-serif":"Trebuchet MS,Arial,sans-serif";
  const line=(x1:number,y1:number,x2:number,y2:number,stroke="#aab3c0",width=.2,dash="")=>`<line x1="${pos(x1)}" y1="${pos(y1)}" x2="${pos(x2)}" y2="${pos(y2)}" stroke="${stroke}" stroke-width="${width}" ${dash?`stroke-dasharray="${dash}"`:""}/>`;
  const label=(value:string,x:number,y:number,size=3.4,stroke=color)=>`<text x="${pos(x)}" y="${pos(y)}" fill="${stroke}" font-size="${size}" font-family="Arial,sans-serif">${escapeXml(value)}</text>`;
  let content=`<rect width="${w}" height="${h}" fill="${settings.background}"/>`;
