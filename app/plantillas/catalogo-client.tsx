@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import {useMemo,useState} from "react";
+import {useEffect,useMemo,useState} from "react";
 import {Search,ChevronLeft,ChevronRight,ArrowUpRight} from "lucide-react";
 import PlantillasNav from "./nav";
 import {entries,initial,svgFor} from "./estudio";
@@ -26,6 +26,14 @@ export default function CatalogoClient({mode}:{mode:Mode}){
  const [category,setCategory]=useState("Todas");
  const [page,setPage]=useState(0);
  const [rowOffset,setRowOffset]=useState<Record<string,number>>({});
+ useEffect(()=>{const q=new URLSearchParams(window.location.search);const item=q.get("categoria");if(item&&variantFamilies.some(f=>f.name===item))setCategory(item)},[]);
+ const curated=[
+  {title:"Planificación y organización",body:"Organizá tus citas, prioridades y tareas en un mismo lugar.",template:"plan-semanal",family:"Papel pautado"},
+  {title:"Imprimibles para aprender",body:"Hojas para practicar letras, escritura y matemáticas.",template:"letter-tracing-worksheet",family:"Hoja de trazado de nombres"},
+  {title:"Hogar y familia",body:"Listas, tareas y registros que simplifican el día a día.",template:"tareas-ninos",family:"Tabla de tareas para niños"},
+  {title:"Trabajo y proyectos",body:"Presupuestos, seguimientos, hojas técnicas y notas.",template:"presupuesto",family:"Hoja de presupuesto"},
+  {title:"Música y aficiones",body:"Pentagramas, tablaturas y hojas de composición.",template:"pentagrama",family:"Papel pautado manuscrito"}
+ ];
  const perPage=24;
  const groups=Array.from(new Set(entries.map(e=>e.group)));
  const visibleTemplates=entries.filter(e=>(category==="Todas"||category===e.group)&&(`${e.name} ${e.group}`.toLowerCase().includes(search.toLowerCase())));
@@ -50,6 +58,15 @@ export default function CatalogoClient({mode}:{mode:Mode}){
  <h1 className="mt-3 font-serif text-3xl leading-tight sm:text-5xl">{mode==="plantillas"?"Plantillas de papel imprimibles gratis":"Imprimibles para aprender, trabajar y organizarse"}</h1>
  <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-stone-600"><p>{mode==="plantillas"?"Elegí una estructura y después el tamaño, las medidas y la orientación.":"Seleccioná una variante y personalizala en el editor de Liago."}</p><span>{mode==="plantillas"?`${entries.length} plantillas editables · ${variantTotal} variantes`:`${variantFamilies.length} familias · ${variantTotal} variantes`}</span></div>
  </div>
+ {mode==="imprimibles"&&category==="Todas"&&!search&&<section className="border-b border-stone-200 py-8">
+ <nav aria-label="Secciones de imprimibles" className="mb-7 flex flex-wrap gap-x-7 gap-y-2 text-sm text-stone-600">{curated.map(group=><a href={"#"+group.title.replaceAll(" ","-")} key={group.title} className="hover:text-blue-900">{group.title}</a>)}</nav>
+ <div className="grid gap-7 md:grid-cols-2">{curated.map(group=><article id={group.title.replaceAll(" ","-")} key={group.title} className="min-w-0">
+ <Link href={`/plantillas?template=${group.template}`} className="block overflow-hidden rounded-xl border border-stone-200 bg-[#eae7e0] p-4 transition hover:border-blue-900">
+ <div className="mx-auto max-w-72 -rotate-1 bg-white shadow-lg"><Preview template={group.template}/></div>
+ </Link>
+ <h2 className="mt-4 font-serif text-2xl">{group.title}</h2><p className="mt-2 text-sm text-stone-600">{group.body}</p>
+ <Link href={`/plantillas/imprimibles?categoria=${encodeURIComponent(group.family)}`} className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-blue-900">Ver opciones <ArrowUpRight size={15}/></Link>
+ </article>)}</div></section>}
  {mode==="plantillas"?
  <div className="space-y-12 py-9">
  {groups.filter(group=>category==="Todas"||category===group).map(group=>{
