@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { createQuotationAction, updateQuotationAction } from "@/app/app/quotations/actions";
-import { Plus, Trash2, Search } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { QuotationChoice } from "@/components/quotations/quotation-choice";
 import { QuotationIncludesSelect } from "@/components/quotations/quotation-includes-select";
 import { CustomerPicker } from "@/components/customers/customer-picker";
