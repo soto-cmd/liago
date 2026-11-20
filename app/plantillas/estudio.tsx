@@ -4,6 +4,7 @@ import PlantillasNav from "./nav";
 import {paperVariants,variantFamilies,variantTotal} from "./variantes";
 import {makeTracingSvg,type TraceSettings} from "./tracing";
 import {renderPlanner} from "./planners";
+import {renderKidsSheet,isKidsSheet,isKidsNameSheet,isKidsTaskSheet,defaultKidsTasks} from "./infancia";
 import {categories,categoryForTemplate,categoryForVariant,categoryLabel,templateMatches,variantMatches} from "./taxonomia";
 import {useEffect,useMemo,useState} from "react";
 import {ArrowLeft,Bookmark,ChevronDown,Download,FilePlus2,Layers,Minus,Plus,Printer,RotateCcw,Share2,Trash2,ArrowUp,ArrowDown,Search,X} from "lucide-react";
@@ -20,10 +21,14 @@ export const entries:Template[]=[
 ["letter-tracing-worksheet","Trazado de letras A–Z","Práctica de escritura","lettertrace"],["trazado-nombre","Trazado de nombres","Práctica de escritura","trace"],["trazado-lineas","Trazado de líneas","Práctica de escritura","hand"],["mi-zi-ge","Papel Mi Zi Ge","Práctica de escritura","chinese"],["pentagrama","Pentagramas","Papel de música","staff"],["piano","Pauta doble para piano","Papel de música","staff"],["guitarra","TAB de guitarra","Papel de música","tabs"],["bajo","TAB para bajo","Papel de música","tabs"],["ukelele","TAB para ukelele","Papel de música","tabs"],
 ["cheques","Registro de cheques","Formularios financieros","ledger"],["facturas","Seguimiento de facturas","Formularios financieros","ledger"],["tareas-ninos","Tabla de tareas para niños","Formularios financieros","habit"],["presupuesto","Hoja de presupuesto","Formularios financieros","budget"],
 ["comic","Storyboard","Diseños creativos","story"],["fichas","Fichas 4×6","Diseños creativos","cards"],
+["nombre-grande","Mi nombre en letras grandes","Padres e hijos","kid"],["nombre-cajas","Mi nombre letra por letra","Padres e hijos","kid"],["nombre-mira-copia","Miro, repaso y escribo","Padres e hijos","kid"],["nombre-escribir","Escribo mi nombre","Padres e hijos","kid"],
+["nombre-colorear","Coloreo mi nombre","Padres e hijos","kid"],["nombre-inicial","Mi primera letra","Padres e hijos","kid"],["nombre-buscar-letras","Busco las letras de mi nombre","Padres e hijos","kid"],
+["nombre-buscar","Encuentro mi nombre","Padres e hijos","kid"],["nombre-recortar","Recorto y armo mi nombre","Padres e hijos","kid"],["nombre-plastilina","Letras con plastilina","Padres e hijos","kid"],
+["nombre-arcoiris","Mi nombre con colores","Padres e hijos","kid"],["numeros-repasar","Repaso de números 0–9","Padres e hijos","kid"],["rutina-infantil","Rutina diaria para niños","Padres e hijos","kid"],
 ["cornell","Notas Cornell","Más estructuras de papel","cornell"],["hexagono","Cuadrícula hexagonal","Más estructuras de papel","hex"],["polar","Gráfico polar","Más estructuras de papel","polar"],["historias","Hoja para historias con dibujo","Más estructuras de papel","storywrite"],["frances","Papel pautado francés","Más estructuras de papel","hand"],["caligrafia","Papel de caligrafía","Más estructuras de papel","hand"],["acordes","Diagramas de acordes","Más estructuras de papel","chords"],["contable","Papel contable","Más estructuras de papel","ledger"],["carta","Papel carta","Más estructuras de papel","letter"],["calendario","Calendario mensual","Más estructuras de papel","calendar"]
 ].map(([id,name,group,mode])=>({id,name,group,mode}));
 const sizes:Record<string,[number,number]>={A4:[210,297],A5:[148,210],Carta:[215.9,279.4],Oficio:[215.9,330.2],A3:[297,420],A6:[105,148]};
-type Sheet=TraceSettings & {id:number;variantId?:string;template:string;paper:string;landscape:boolean;margin:number;spacing:number;ink:string;background:string;heading:string;subtitle:string;date:string;calendarDate?:string;calendarAuto?:boolean;habitNames?:string[];};
+type Sheet=TraceSettings & {id:number;variantId?:string;template:string;paper:string;landscape:boolean;margin:number;spacing:number;ink:string;background:string;heading:string;subtitle:string;date:string;calendarDate?:string;calendarAuto?:boolean;habitNames?:string[];childName?:string;kidTasks?:string[];};
 export const initial:Sheet={id:1,template:"plan-mensual",paper:"A4",landscape:false,margin:13,spacing:7,ink:"#333f53",background:"#ffffff",heading:"",subtitle:"",date:"",traceInput:"A",traceMode:"both",traceSize:"medium",dashedCopies:"half",traceFont:"rounded",showNameLine:true,showDateLine:true,showFooterMark:true};
 const esc=(v:string)=>v.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]||c));
 const fmt=(v:number)=>Number(v.toFixed(3));
@@ -41,6 +46,7 @@ export function svgFor(s:Sheet){
  let t=m+18;
  const mode=entries.find(x=>x.id===s.template)?.mode||"ruled",name=entries.find(x=>x.id===s.template)?.name||"Plantilla";
  if(mode==="lettertrace")return {svg:makeTracingSvg(s,w,h),w,h};
+ if(isKidsSheet(s.template))return {svg:renderKidsSheet(s.template,s,w,h),w,h};
  if(s.template==="plan-diario"||s.template==="plan-proyecto"||s.template==="habitos"){const kind=s.template==="plan-diario"?"daily":s.template==="plan-proyecto"?"project":"habit";return {svg:renderPlanner(kind,s,w,h),w,h}}
  let out="";
  const ln=(x1:number,y1:number,x2:number,y2:number,th=.22,dash="")=>{out+=`<line x1="${fmt(x1)}" y1="${fmt(y1)}" x2="${fmt(x2)}" y2="${fmt(y2)}" stroke="${ink}" stroke-width="${th}" ${dash?'stroke-dasharray="'+dash+'"':""}/>`};
@@ -237,7 +243,15 @@ export default function Estudio(){
 <p className="mt-2 text-xs text-stone-500">En modo automático, el período se actualiza con el calendario. Las fechas elegidas manualmente se conservan.</p>
 </div>}
 <div className="rounded-xl border border-stone-200 bg-white p-3"><h2 className="font-serif text-lg">Contenido de la hoja</h2><p className="mb-3 text-xs text-stone-500">Modificá los textos y los ajustes de la plantilla seleccionada.</p><div className="space-y-3"><label className="block text-sm">Título personalizado<input className={input} maxLength={60} value={current.heading} onChange={e=>update({heading:e.target.value})} placeholder={template.name}/></label><label className="block text-sm">Texto de práctica (si corresponde)<input className={input} maxLength={50} value={current.subtitle} onChange={e=>update({subtitle:e.target.value})} placeholder="Aa Bb Cc 123"/></label><label className="block text-sm">Fecha o periodo<input className={input} maxLength={35} value={current.date} onChange={e=>update({date:e.target.value})} placeholder="Noviembre 2026"/></label></div></div>
- {current.template==="letter-tracing-worksheet"&&<section className="mt-6 space-y-3 rounded-xl border border-blue-200 bg-blue-50/40 p-3">
+ {isKidsSheet(current.template)&&<section className="rounded-xl border border-blue-200 bg-white p-3">
+<div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-sm font-bold text-blue-900">Actividad para padres e hijos</h2><Link href="/plantillas/padres-hijos" className="text-xs text-blue-900 underline">Ver actividades</Link></div>
+{(isKidsNameSheet(current.template)||isKidsTaskSheet(current.template))&&<label className="mt-3 block text-sm">Nombre del niño o niña<input className={input} maxLength={22} value={current.childName||""} onChange={e=>update({childName:e.target.value})} placeholder="Ej.: Ana"/></label>}
+{isKidsTaskSheet(current.template)&&<div className="mt-3"><p className="mb-2 text-xs font-semibold text-stone-600">Personalizá las tareas</p>
+{Array.from({length:current.template==="rutina-infantil"?6:7},(_,i)=><label key={i} className="mt-2 flex items-center gap-2 text-xs text-stone-600"><span className="w-4 shrink-0">{i+1}</span><input className={input} maxLength={38} value={(current.kidTasks?.length?current.kidTasks:defaultKidsTasks)[i]||""} onChange={e=>{const tasks=[...(current.kidTasks?.length?current.kidTasks:defaultKidsTasks)];tasks[i]=e.target.value;update({kidTasks:tasks})}}/></label>)}</div>}
+<p className="mt-3 text-xs text-stone-500">La actividad se genera en este navegador. No necesitás iniciar sesión.</p>
+</section>}
+
+{current.template==="letter-tracing-worksheet"&&<section className="mt-6 space-y-3 rounded-xl border border-blue-200 bg-blue-50/40 p-3">
 <h2 className="text-base font-bold text-blue-900">Práctica de trazado A–Z</h2>
 <label className="block text-sm">Letra o palabra<input className={input} maxLength={26} value={current.traceInput??"A"} onChange={e=>update({traceInput:e.target.value})} placeholder="Ej.: A, Lia o apple"/></label>
 <div className="grid grid-cols-2 gap-2"><label className="text-sm">Trazar<select className={input} value={current.traceMode||"both"} onChange={e=>update({traceMode:e.target.value as NonNullable<Sheet["traceMode"]>})}><option value="both">Ambas Aa</option><option value="uppercase">Mayúscula</option><option value="lowercase">Minúscula</option><option value="word">Texto completo</option></select></label><label className="text-sm">Tamaño<select className={input} value={current.traceSize||"medium"} onChange={e=>update({traceSize:e.target.value as NonNullable<Sheet["traceSize"]>})}><option value="large">Grande</option><option value="medium">Mediano</option><option value="small">Pequeño</option></select></label></div>
