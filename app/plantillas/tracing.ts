@@ -53,9 +53,7 @@ export function makeTracingSvg(settings:TraceSettings & {heading:string;ink:stri
      content+=`<text x="${pos(xx)}" y="${pos(mainY)}" fill="none" stroke="#98a5b4" stroke-width=".55" stroke-dasharray="1.3 1.5" stroke-linecap="round" stroke-linejoin="round" ${textStyle}>${escapeXml(text)}</text>`;
    }
  }
- if(settings.showFooterMark!==false){
-   content+=line(m,h-10,right,h-10,"#e2e8f0",.16);
-   content+=`<text x="${w/2}" y="${pos(h-5.8)}" fill="#a6adb7" font-family="Arial,sans-serif" text-anchor="middle" font-size="2.9" letter-spacing=".55">Creado con LiaGo · liago.vercel.app</text>`;
- }
+ content+=`<rect x="0" y="${h-10}" width="${w}" height="10" fill="${settings.background}"/>`;
+ content+=`<text x="${w/2}" y="${pos(h-5)}" fill="#aeb5bf" font-family="Arial,sans-serif" text-anchor="middle" font-size="2.8" letter-spacing=".45">Liago</text>`;
  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}mm" height="${h}mm" viewBox="0 0 ${w} ${h}">${content}</svg>`;
 }
