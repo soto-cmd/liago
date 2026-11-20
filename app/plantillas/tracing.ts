@@ -45,7 +45,7 @@ export function makeTracingSvg(settings:TraceSettings & {heading:string;ink:stri
    const available=Math.max(0,Math.floor((right-m-4)/cell)-1);
    const count=copies==="none"?0:copies==="one"?1:copies==="half"?Math.max(1,Math.floor(available/2)):available;
    const mainY=base-1;
-   const textStyle=`font-family=${JSON.stringify(font)} font-size="${fontSize}" font-weight="600"`;
+   const textStyle=`font-family="${font}" font-size="${fontSize}" font-weight="600"`;
    content+=`<text x="${pos(m+2)}" y="${pos(mainY)}" fill="${color}" ${textStyle}>${escapeXml(text)}</text>`;
    for(let i=0;i<count;i++){
      const xx=m+2+cell*(i+1);
