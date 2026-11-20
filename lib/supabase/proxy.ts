@@ -7,6 +7,7 @@ const PUBLIC_PATHS = [
   "/auth/sign-up",
   "/auth/forgot-password",
   "/auth/callback",
+  "/plantillas",
 ];
 
 function isPublicPath(pathname: string) {
@@ -16,6 +17,13 @@ function isPublicPath(pathname: string) {
 }
 
 export async function updateSession(request: NextRequest) {
+  // El generador y el catálogo son gratuitos y completamente públicos.
+  // Evita llamadas a Supabase Auth en estas páginas, sin abrir las rutas privadas.
+  const pathname = request.nextUrl.pathname;
+  if (pathname === "/plantillas" || pathname.startsWith("/plantillas/")) {
+    return NextResponse.next({ request });
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
