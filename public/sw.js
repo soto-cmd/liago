@@ -1,5 +1,5 @@
 const STATIC_CACHE = "liago-static-v1";
-const PAGE_CACHE = "liago-pages-v1";
+const PAGE_CACHE = "liago-pages-v2";
 const OFFLINE_URL = "/offline";
 
 const PRECACHE = ["/", OFFLINE_URL, "/manifest.webmanifest"];
@@ -29,8 +29,12 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(PAGE_CACHE).then((cache) => cache.put(request, copy));
+          // No guardar páginas de inicio de sesión obtenidas por redirección.
+          // Así una visita anónima a /plantillas nunca hereda una página de login del caché.
+          if (response.ok && !response.redirected) {
+            const copy = response.clone();
+            caches.open(PAGE_CACHE).then((cache) => cache.put(request, copy)).catch(() => {});
+          }
           return response;
         })
         .catch(async () => {
