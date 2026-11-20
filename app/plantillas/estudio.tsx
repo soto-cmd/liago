@@ -202,7 +202,7 @@ export default function Estudio(){
 </div></div>}
 <div id="liago-editor" className="grid min-h-[calc(100vh-162px)] flex-1 lg:grid-cols-[330px_minmax(0,1fr)_245px]">
  <aside className="max-h-[calc(100vh-155px)] overflow-y-auto border-r border-stone-200 bg-[#faf9f6] p-4">
-<div role="tablist" aria-label="Opciones del generador" className="sticky top-0 z-10 mb-4 grid grid-cols-3 gap-1 rounded-xl border border-stone-200 bg-white p-1.5 shadow-sm">
+<div role="tablist" aria-label="Opciones del generador" className="mb-4 grid grid-cols-3 gap-1 rounded-xl border border-stone-200 bg-white p-1.5 shadow-sm">
 {([{id:"plantillas",label:"Plantillas"},{id:"diseno",label:"Diseño"},{id:"contenido",label:"Contenido"}] as const).map(tab=><button key={tab.id} type="button" role="tab" aria-selected={sidebarTab===tab.id} onClick={()=>setSidebarTab(tab.id)} className={`rounded-lg px-2 py-2.5 text-xs font-semibold transition-colors ${sidebarTab===tab.id?"bg-blue-900 text-white":"text-stone-600 hover:bg-stone-100"}`}>{tab.label}</button>)}
 </div>
 {sidebarTab==="plantillas"&&<div role="tabpanel" className="space-y-4"><div className="mb-4 rounded-xl border border-blue-200 bg-white p-3">
