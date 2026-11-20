@@ -29,6 +29,9 @@ function escapeXml(value:string){return value.replace(/[&<>"']/g,c=>({"&":"&amp;
 function fmt(n:number){return Number(n.toFixed(2));}
 function attrs(obj:Record<string,string|number>){return Object.entries(obj).map(([k,v])=>k+'="'+escapeXml(String(v))+'"').join(" ");}
 export function renderKidsSheet(id:string,s:KidsSheetOptions,w:number,h:number):string {
+ // Diseño A4 proporcional: se adapta a otros papeles sin cortar contenido.
+ const paperW=w,paperH=h;
+ w=210;h=297;
  const ink=/^#[0-9a-f]{6}$/i.test(s.ink)?s.ink:"#334155";
  const bg=/^#[0-9a-f]{6}$/i.test(s.background)?s.background:"#ffffff";
  const m=Math.max(10,Math.min(30,s.margin||13)),r=w-m,inner=r-m,footer=h-8,top=m+20;
@@ -45,7 +48,7 @@ export function renderKidsSheet(id:string,s:KidsSheetOptions,w:number,h:number):
   add("rect",{x:fmt(x),y:fmt(y),width:fmt(Math.max(0,rw)),height:fmt(Math.max(0,rh)),rx,fill,stroke,"stroke-width":th,...(dash?{"stroke-dasharray":dash}:{})});
  }
  function txt(value:string,x:number,y:number,size=4,bold=false,color=ink,anchor="start",stroke="",dash=""){
-  add("text",{x:fmt(x),y:fmt(y),"font-family":"Arial,Helvetica,sans-serif","font-size":fmt(size),"font-weight":bold?700:400,"text-anchor":anchor,fill:stroke?"none":color,...(stroke?{stroke,"stroke-width":.45,"stroke-dasharray":dash||"1.3 1.5","stroke-linecap":"round","stroke-linejoin":"round"}:{})},escapeXml(value));
+  add("text",{x:fmt(x),y:fmt(y),"font-family":"Arial,Helvetica,sans-serif","font-size":fmt(size),"font-weight":bold?700:400,"text-anchor":anchor,fill:stroke?"none":color,...(stroke?{stroke,"stroke-width":.45,"stroke-dasharray":dash==="solid"?"none":dash||"1.3 1.5","stroke-linecap":"round","stroke-linejoin":"round"}:{})},escapeXml(value));
  }
  function circle(cx:number,cy:number,radius:number,fill="none",stroke="#94a3b8",th=.3){
   add("circle",{cx:fmt(cx),cy:fmt(cy),r:fmt(radius),fill,stroke,"stroke-width":th});
@@ -88,7 +91,7 @@ export function renderKidsSheet(id:string,s:KidsSheetOptions,w:number,h:number):
   for(let i=0;i<3;i++){const y=base+145+i*22;guideline(y)}
  }else if(id==="nombre-mira-copia"){
   for(let k=0;k<3;k++){
-   const y=base+15+k*76;
+   const y=base+15+k*65;
    txt("1 · MIRO",m,y-6,3.1,true);smallName(m+5,y+12,ink,false,12);
    txt("2 · REPASO",m,y+23,3.1,true);guideline(y+42);smallName(m+5,y+40,ink,true,12);
    txt("3 · ESCRIBO",m,y+54,3.1,true);guideline(y+73);
@@ -102,20 +105,20 @@ export function renderKidsSheet(id:string,s:KidsSheetOptions,w:number,h:number):
   if(id==="nombre-colorear"){
    for(let i=0;i<rows;i++){
     const y=base+18+i*gap,scale=Math.min(33,inner/Math.max(1,name.length*.62));
-    txt(name,m+inner/2,y+Math.min(35,gap*.65),scale,true,ink,"middle","#9faac0","0");
+    txt(name,m+inner/2,y+Math.min(35,gap*.65),scale,true,ink"middle","#9faac0","solid");
     line(m,y+gap-6,r,y+gap-6,"#e0e6ed",.2);
    }
   }else{
    for(let k=0;k<rows;k++){
     const chunk=letters.slice(k*4,k*4+4),y=base+18+k*gap,cw=inner/Math.max(1,chunk.length);
-    chunk.forEach((l,i)=>{rect(m+i*cw,y,cw-2,gap-5,"#fff","#c4cbd5",.28,3);txt(l,m+i*cw+cw/2-1,y+gap*.68,Math.min(32,gap*.58),true,ink,"middle","#9baabf","0")});
+    chunk.forEach((l,i)=>{rect(m+i*cw,y,cw-2,gap-5,"#fff","#c4cbd5",.28,3);txt(l,m+i*cw+cw/2-1,y+gap*.68,Math.min(32,gap*.58),true,ink"middle","#9baabf","solid")});
    }
   }
  }else if(id==="nombre-inicial"){
   const first=letters[0]||"A";
   txt("Pintá tu inicial y después repasá tu nombre.",m,base+4,3.3);
   rect(m+5,base+15,inner-10,125,"none","#e0e7ef",.3,5);
-  txt(first,m+inner/2,base+120,105,true,ink,"middle","#8794a6","0");
+  txt(first,m+inner/2,base+120,105,true,ink"middle","#8794a6","solid");
   txt("AHORA ESCRIBO MI NOMBRE",m,base+156,3.1,true);
   guideline(base+180);smallName(m+4,base+177,ink,true,16);
   guideline(base+210);
@@ -188,5 +191,5 @@ export function renderKidsSheet(id:string,s:KidsSheetOptions,w:number,h:number):
  }
  line(m,footer-3,r,footer-3,"#e2e8f0",.2);
  txt("Liago",w/2,footer+2,2.8,false,"#aeb5bf","middle");
- return '<svg xmlns="http://www.w3.org/2000/svg" width="'+fmt(w)+'mm" height="'+fmt(h)+'mm" viewBox="0 0 '+fmt(w)+' '+fmt(h)+'">'+out.join("")+"</svg>";
+ return '<svg xmlns="http://www.w3.org/2000/svg" width="'+fmt(paperW)+'mm" height="'+fmt(paperH)+'mm" viewBox="0 0 210 297" preserveAspectRatio="xMidYMid meet">'+out.join("")+"</svg>";
 }
