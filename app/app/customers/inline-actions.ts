@@ -20,7 +20,7 @@ export async function saveCustomerInlineAction(input:Input):Promise<{ok:boolean;
   if(duplicate)return {ok:false,message:"Ya existe un cliente con ese nombre. Seleccionalo en la lista."};
  }
  const query=id?
-  supabase.from("customers").update({name,phone,email,tax_id}).eq("id",id).eq("organization_id",organizationId).is("deleted_at",null):
+  supabase.from("customers").update({name,phone}).eq("id",id).eq("organization_id",organizationId).is("deleted_at",null):
   supabase.from("customers").insert({organization_id:organizationId,name,phone,email,tax_id,customer_type:"PERSON"});
  const {data,error}=await query.select("id,name,customer_code,phone,whatsapp").single();
  if(error||!data)return {ok:false,message:"No se pudo guardar el cliente. Verificá los datos."};
