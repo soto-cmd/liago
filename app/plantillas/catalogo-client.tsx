@@ -20,7 +20,7 @@ export default function CatalogoClient({mode}:{mode:Mode}){
  const [family,setFamily]=useState("Todas");
  const [page,setPage]=useState(0);
  const [rowOffset,setRowOffset]=useState<Record<string,number>>({});
- useEffect(()=>{const q=new URLSearchParams(window.location.search);const item=q.get("categoria");const term=q.get("buscar");if(term)setSearch(term);if(item&&categories.some(c=>c.id===item))setCategory(item);else if(item&&mode==="imprimibles"&&variantFamilies.some(f=>f.name===item)){setFamily(item);const variant=paperVariants.find(v=>v.family===item);if(variant)setCategory(categoryForVariant(variant))}},[mode]);
+ useEffect(()=>{const q=new URLSearchParams(window.location.search);const item=q.get("categoria");const term=q.get("buscar");if(term)setSearch(term);if(item&&categories.some(c=>c.id===item))setCategory(item);else if(item&&mode==="imprimibles"&&variantFamilies.some(f=>f.name===item)){setFamily(item);setCategory("Todas")}},[mode]);
  const curated=[
   {title:"Planificación y organización",body:"Organizá tus citas, prioridades y tareas en un mismo lugar.",template:"plan-semanal",category:"planificacion"},
   {title:"Imprimibles para aprender",body:"Hojas para practicar letras, escritura y matemáticas.",template:"letter-tracing-worksheet",category:"aprendizaje"},
