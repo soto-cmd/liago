@@ -27,7 +27,7 @@ export default async function PaymentReceiptPage({params,searchParams}:{params:P
   const methodNames:Record<string,string>={CASH:"Efectivo",TRANSFER:"Transferencia",CARD:"Tarjeta",OTHER:"Otro"};
   const isStudio=(company?.name||organization.name).toLowerCase().includes("a&m estudio");
   return <div className="mx-auto max-w-4xl space-y-4 p-4 md:p-8 print:max-w-none print:p-0">
-    <div className="flex flex-wrap items-center justify-between gap-3 print:hidden"><Link href="/app/payments" className="liago-btn-secondary">Volver a cobros</Link><div className="flex flex-wrap gap-2"><PrintButton filename={code+"_"+safeName+".pdf"}/><ExportJpgButton filename={code+"_"+safeName+".jpg"} targetId="payment-document"/></div></div>
+    <div className="flex flex-wrap items-center justify-between gap-3 print:hidden"><Link href="/app/payments" className="liago-btn-secondary">Volver a cobros</Link><div className="flex flex-wrap gap-2">{payment.customer_id?<Link href={"/app/customers/"+payment.customer_id} className="liago-btn-secondary">Editar cliente</Link>:null}<PrintButton filename={code+"_"+safeName+".pdf"}/><ExportJpgButton filename={code+"_"+safeName+".jpg"} targetId="payment-document"/></div></div>
     {message.updated?<p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800 print:hidden">Recibo actualizado correctamente.</p>:null}
     {message.error?<p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800 print:hidden">No se pudo actualizar el recibo. Revisá los datos y los permisos.</p>:null}
     {["OWNER","ADMIN","MANAGER"].includes(role)&&payment.status==="CONFIRMED"?
