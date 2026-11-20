@@ -4,6 +4,7 @@ import { createQuotationAction, updateQuotationAction } from "@/app/app/quotatio
 import { Plus, Trash2, Search } from "lucide-react";
 import { QuotationChoice } from "@/components/quotations/quotation-choice";
 import { QuotationIncludesSelect } from "@/components/quotations/quotation-includes-select";
+import { CustomerPicker } from "@/components/customers/customer-picker";
 
 type Customer={id:string;name:string;customer_code:string|null;phone:string|null;whatsapp:string|null};
 type Product={id:string;name:string;description:string|null;sale_price:number;item_type:string};
@@ -12,7 +13,6 @@ export type QuotationInitial={id:string;customer_id:string;event_name:string|nul
 const money=(n:number,c:string)=>new Intl.NumberFormat("es-PY",{maximumFractionDigits:2}).format(n)+" "+c;
 type PreviousChoices={events:string[];times:string[];includes:string[];terms:string[];methods:string[];banks:string[]};
 export function NewQuotationForm({customers,products,currency,locations,previousChoices,photographyOnly=false,initial}:{customers:Customer[];products:Product[];currency:string;locations:string[];previousChoices:PreviousChoices;photographyOnly?:boolean;initial?:QuotationInitial}){
- const [customerSearch,setCustomerSearch]=useState("");
  const [customerId,setCustomerId]=useState(initial?.customer_id||"");
  const [serviceSearch,setServiceSearch]=useState("");
  const [eventLocation,setEventLocation]=useState(initial?.event_location||"");
@@ -20,7 +20,6 @@ export function NewQuotationForm({customers,products,currency,locations,previous
  const [selected,setSelected]=useState("");
  const [items,setItems]=useState<Item[]>((initial?.items||[]).map((i,k)=>({...i,product_id:i.product_id||"",key:k+1})));
  const [pending,setPending]=useState(false);
- const clients=useMemo(()=>customers.filter(c=>(c.name+" "+(c.customer_code||"")+" "+(c.whatsapp||"")+" "+(c.phone||"")).toLocaleLowerCase().includes(customerSearch.toLocaleLowerCase())),[customers,customerSearch]);
  const catalog=useMemo(()=>products.filter(p=>(p.name+" "+(p.description||"")).toLocaleLowerCase().includes(serviceSearch.toLocaleLowerCase())).sort((a,b)=>(a.item_type==="SERVICE"?0:1)-(b.item_type==="SERVICE"?0:1)||a.name.localeCompare(b.name)),[products,serviceSearch]);
  const total=items.reduce((s,i)=>s+Math.round(i.quantity*(i.unit_price??0)*100)/100,0);
  const deposit=Math.round(total*0.5*100)/100;
@@ -36,8 +35,7 @@ export function NewQuotationForm({customers,products,currency,locations,previous
    <section className="rounded-xl border bg-white p-4">
      <div className="mb-3 flex items-center justify-between"><h3 className="font-bold text-slate-900">1. Cliente y evento</h3><span className="text-xs text-slate-500">{initial?"Se conserva el número original":"Numeración automática al guardar"}</span></div>
      <div className="grid gap-3 md:grid-cols-2">
-      <label className="text-sm font-medium">Buscar cliente<div className="relative mt-1"><Search className="absolute left-3 top-3 h-4 w-4 text-slate-400"/><input className="liago-input pl-9" value={customerSearch} onChange={e=>setCustomerSearch(e.target.value)} placeholder="Nombre o teléfono"/></div></label>
-      <label className="text-sm font-medium">Cliente *<select name="customer_id" required className="liago-input mt-1" value={customerId} onChange={e=>setCustomerId(e.target.value)}><option value="">Seleccionar cliente existente</option>{clients.map(c=><option value={c.id} key={c.id}>{c.name}{c.customer_code?" · "+c.customer_code:""}</option>)}</select></label>
+      <CustomerPicker customers={customers} value={customerId} onChange={setCustomerId}/>
       <QuotationChoice name="event_name" initialValue={initial?.event_name||""} label="Evento o trabajo" maxLength={160} options={[...previousChoices.events,"Evento institucional","Cumpleaños infantil","Cumpleaños de adulto","15 años","Boda","Bautismo","Graduación","Sesión fotográfica","Evento empresarial"]}/>
       <label className="text-sm font-medium">Fecha<input type="date" name="event_date" defaultValue={initial?.event_date||""} className="liago-input mt-1"/></label>
       <QuotationChoice name="event_time" initialValue={initial?.event_time||""} label="Horario" maxLength={100} options={[...previousChoices.times,"08:00 a 10:00 hs","10:00 a 12:00 hs","14:00 a 16:00 hs","16:00 a 18:00 hs","18:00 a 20:00 hs","19:00 a 21:00 hs","20:00 a 22:00 hs","A confirmar"]}/>
