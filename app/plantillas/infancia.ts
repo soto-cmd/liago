@@ -105,20 +105,20 @@ export function renderKidsSheet(id:string,s:KidsSheetOptions,w:number,h:number):
   if(id==="nombre-colorear"){
    for(let i=0;i<rows;i++){
     const y=base+18+i*gap,scale=Math.min(33,inner/Math.max(1,name.length*.62));
-    txt(name,m+inner/2,y+Math.min(35,gap*.65),scale,true,ink"middle","#9faac0","solid");
+    txt(name,m+inner/2,y+Math.min(35,gap*.65),scale,true,ink,"middle","#9faac0","solid");
     line(m,y+gap-6,r,y+gap-6,"#e0e6ed",.2);
    }
   }else{
    for(let k=0;k<rows;k++){
     const chunk=letters.slice(k*4,k*4+4),y=base+18+k*gap,cw=inner/Math.max(1,chunk.length);
-    chunk.forEach((l,i)=>{rect(m+i*cw,y,cw-2,gap-5,"#fff","#c4cbd5",.28,3);txt(l,m+i*cw+cw/2-1,y+gap*.68,Math.min(32,gap*.58),true,ink"middle","#9baabf","solid")});
+    chunk.forEach((l,i)=>{rect(m+i*cw,y,cw-2,gap-5,"#fff","#c4cbd5",.28,3);txt(l,m+i*cw+cw/2-1,y+gap*.68,Math.min(32,gap*.58),true,ink,"middle","#9baabf","solid")});
    }
   }
  }else if(id==="nombre-inicial"){
   const first=letters[0]||"A";
   txt("Pintá tu inicial y después repasá tu nombre.",m,base+4,3.3);
   rect(m+5,base+15,inner-10,125,"none","#e0e7ef",.3,5);
-  txt(first,m+inner/2,base+120,105,true,ink"middle","#8794a6","solid");
+  txt(first,m+inner/2,base+120,105,true,ink,"middle","#8794a6","solid");
   txt("AHORA ESCRIBO MI NOMBRE",m,base+156,3.1,true);
   guideline(base+180);smallName(m+4,base+177,ink,true,16);
   guideline(base+210);
