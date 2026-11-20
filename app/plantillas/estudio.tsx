@@ -47,7 +47,10 @@ function svgFor(s:Sheet){
  const section=(name:string,x:number,y:number,width:number,height:number,variant:"lines"|"checks"|"box"="lines")=>{txt(name.toUpperCase(),x,y,3.1,true);const yy=y+5; if(variant==="box")rect(x,yy,width,height-5);else if(variant==="checks")checklist(x,yy,Math.floor((height-6)/9),9,width);else lines(yy+5,y+height,8,x,x+width)};
  const table=(headers:string[],y:number,rows=12)=>{const cw=ww/headers.length,row=Math.min(12,(B-y-3)/(rows+1));headers.forEach((c,i)=>txt(c.slice(0,21).toUpperCase(),m+i*cw+1,y+5,2.8,true));for(let i=0;i<=headers.length;i++)ln(m+i*cw,y,m+i*cw,y+(rows+1)*row,.21);for(let i=0;i<=rows+1;i++)ln(m,y+i*row,R,y+i*row,.2)};
  const mainTitle=(s.heading.trim()||name).toUpperCase();
- txt(mainTitle.slice(0,52),m,m+6,5.3,true);txt((s.date||new Date().toLocaleDateString("es-PY",{month:"long",year:"numeric"})).toUpperCase(),R-39,m+6,2.9);ln(m,m+9,R,m+9,.55);
+ const selectedDate=s.calendarAuto===false&&s.calendarDate?parseISO(s.calendarDate):new Date();
+ const weekStart=isoMonday(selectedDate);
+ const periodLabel=mode==="daily"?shortDate(selectedDate):mode==="weekly"?`${shortDate(weekStart)} — ${shortDate(new Date(weekStart.getFullYear(),weekStart.getMonth(),weekStart.getDate()+6))}`:mode==="monthly"||mode==="calendar"?`${MONTHS[selectedDate.getMonth()]} ${selectedDate.getFullYear()}`:mode==="yearly"?String(selectedDate.getFullYear()):s.date||new Date().toLocaleDateString("es-PY",{month:"long",year:"numeric"});
+ txt(mainTitle.slice(0,52),m,m+6,5.3,true);txt(periodLabel.toUpperCase(),R-Math.min(75,ww*.49),m+6,2.7);ln(m,m+9,R,m+9,.55);
  if(["ruled","dots","grid","gridheavy","blank","hand","iso","hex","cartesian","log","polar","chinese","letter","numberline","trace"].includes(mode)){
    if(!s.heading.trim()){out="";} else {t=m+13; }
    if(mode==="ruled"||mode==="letter"){lines(t+sp,B,sp);if(mode==="ruled")ln(m+13,t,m+13,B,.3)}
@@ -59,9 +62,47 @@ function svgFor(s:Sheet){
    if(mode==="hex"){const sz=sp/1.6;for(let y=t+sz;y+sz<B;y+=sz*1.73)for(let x=m+sz+(Math.round((y-t)/ (sz*1.73))%2)*sz*1.5;x+sz<R;x+=sz*3){let points="";for(let k=0;k<6;k++){const a=Math.PI*k/3;points+=fmt(x+sz*Math.cos(a))+","+fmt(y+sz*Math.sin(a))+" "}out+=`<polygon points="${points}" fill="none" stroke="${ink}" stroke-width=".17"/>`}}
    if(mode==="polar"){const cx=(m+R)/2,cy=(t+B)/2,r=Math.min(ww, B-t)*.43;for(let i=1;i<=8;i++){out+=`<circle cx="${cx}" cy="${cy}" r="${fmt(r*i/8)}" stroke="${ink}" stroke-width=".17" fill="none"/>`}for(let i=0;i<24;i++){let a=i*Math.PI/12;ln(cx,cy,cx+r*Math.cos(a),cy+r*Math.sin(a),.17)}}
    if(mode==="numberline"){for(let y=t+20;y<B-6;y+=25){ln(m+8,y,R-8,y,.4);for(let i=0;i<=10;i++){const x=m+8+i*(ww-16)/10;ln(x,y-3,x,y+3,.3);txt(String(i),x-1,y+7,2.8)}}}
- } else if(mode==="weekly"||mode==="calendar"){const days=["L","M","M","J","V","S","D"],col=ww/7;days.forEach((day,i)=>{txt(day,m+i*col+3,t+4,3.4,true);rect(m+i*col,t+7,col,Math.min((B-t-12),mode==="weekly"?hh*.8:hh*.75))});if(mode==="calendar")for(let i=0;i<7;i++)for(let j=1;j<5;j++)ln(m+i*col,t+7+j*(hh*.75)/5,m+(i+1)*col,t+7+j*(hh*.75)/5);section("Prioridades",m,B-24,ww,20)}
- else if(mode==="monthly"){section("Enfoque del mes",m,t,ww,22,"box");const half=ww*.47;section("Objetivos",m,t+33,half,60);section("Fechas importantes",m+ww*.53,t+33,half,60,"checks");section("Proyectos",m,t+106,half,70,"checks");section("Próximas acciones",m+ww*.53,t+106,half,70,"checks");section("Hábitos",m,t+187,half,35);section("Reflexión",m+ww*.53,t+187,half,35,"box")}
- else if(mode==="daily"){section("Prioridades",m,t,ww*.47,70,"checks");section("Horario",m+ww*.53,t,ww*.47,100);section("Tareas",m,t+85,ww*.47,110,"checks");section("Notas",m+ww*.53,t+115,ww*.47,75)}
+ } else if(mode==="weekly"){
+   const col=ww/7,usable=Math.max(25,B-t-31);
+   for(let i=0;i<7;i++){const d=new Date(weekStart.getFullYear(),weekStart.getMonth(),weekStart.getDate()+i),x=m+i*col;
+     txt(`${WEEKDAYS[i]} ${d.getDate()}/${d.getMonth()+1}`,x+1.5,t+5,2.7,true);
+     rect(x,t+8,col,usable);
+     for(let lineY=t+21;lineY<t+8+usable-4;lineY+=12)ln(x+2,lineY,x+col-2,lineY,.12);
+   }
+   section("Prioridades de la semana",m,B-21,ww,16,"checks");
+ }
+ else if(mode==="monthly"||mode==="calendar"){
+   const first=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1),daysInMonth=new Date(selectedDate.getFullYear(),selectedDate.getMonth()+1,0).getDate();
+   const shift=(first.getDay()+6)%7,rows=Math.ceil((shift+daysInMonth)/7),col=ww/7;
+   const calendarTop=t+9,calendarBottom=mode==="monthly"?Math.min(B-67,t+127):B-8,rowHeight=(calendarBottom-calendarTop)/rows;
+   for(let k=0;k<7;k++)txt(WEEKDAYS[k],m+k*col+2,t+5,3,true);
+   for(let row=0;row<rows;row++)for(let k=0;k<7;k++){
+      const number=row*7+k-shift+1,x=m+k*col,y=calendarTop+row*rowHeight;
+      rect(x,y,col,rowHeight);
+      if(number>=1&&number<=daysInMonth)txt(String(number),x+2,y+5,3,true);
+   }
+   if(mode==="monthly"){
+     const remaining=Math.max(28,B-calendarBottom-13),sectionHeight=(remaining-4)/2;
+     section("Prioridades",m,calendarBottom+10,ww*.48,sectionHeight,"checks");
+     section("Fechas importantes",m+ww*.53,calendarBottom+10,ww*.47,sectionHeight,"checks");
+   }
+ }
+ else if(mode==="yearly"){
+   const gapX=4,gapY=7,columns=3,rows=4,cellW=(ww-gapX*(columns-1))/columns,cellH=Math.min((B-t-7-gapY*(rows-1))/rows,61);
+   for(let month=0;month<12;month++){
+      const x=m+(month%columns)*(cellW+gapX),y=t+Math.floor(month/columns)*(cellH+gapY);
+      txt(MONTHS[month].toUpperCase(),x+1,y+4,3.1,true);
+      const cW=cellW/7,headingY=y+8,baseY=y+13,rowH=(cellH-17)/6;
+      for(let k=0;k<7;k++)txt(WEEKDAYS[k].slice(0,1),x+k*cW+cW*.3,headingY,2.2);
+      const offset=(new Date(selectedDate.getFullYear(),month,1).getDay()+6)%7,days=new Date(selectedDate.getFullYear(),month+1,0).getDate();
+      for(let d=1;d<=days;d++){const n=offset+d-1,dx=x+(n%7)*cW,dy=baseY+Math.floor(n/7)*rowH;txt(String(d),dx+1,dy,2.5);}
+   }
+ }
+ else if(mode==="daily"){
+   txt(WEEKDAYS[(selectedDate.getDay()+6)%7].toUpperCase(),m,t+3,3.3,true);
+   section("Prioridades",m,t+9,ww*.47,65,"checks");section("Horario",m+ww*.53,t+9,ww*.47,100);
+   section("Tareas",m,t+84,ww*.47,Math.min(110,B-(t+84)-2),"checks");section("Notas",m+ww*.53,t+115,ww*.47,Math.min(75,B-(t+115)-2));
+ }
  else if(mode==="project"||mode==="goals"){section("Objetivo principal",m,t,ww,30,"box");section("Hitos y entregables",m,t+45,ww*.47,105,"checks");section("Responsables y fechas",m+ww*.53,t+45,ww*.47,105);section("Próximos pasos",m,t+166,ww,65,"checks")}
  else if(mode==="track"||mode==="habit"){table(["Actividad","L","M","M","J","V","S","D"],t,15)}
  else if(mode==="notes"){section("Información general",m,t,ww,42,"box");section("Ideas y observaciones",m,t+57,ww,106);section("Conclusiones",m,t+174,ww,55,"box")}
