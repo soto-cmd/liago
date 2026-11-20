@@ -135,7 +135,33 @@ export default function Estudio(){
  useEffect(()=>{const timer=window.setInterval(()=>setClockTick(v=>v+1),60000);return()=>window.clearInterval(timer)},[]);
  useEffect(()=>{try{const raw=localStorage.getItem("liago-print-studio-v1");if(raw){const p=JSON.parse(raw);if(Array.isArray(p)&&p.length&&p.length<51&&p.every(x=>typeof x.id==="number"&&typeof x.template==="string")){setPages(p);setSelected(p[0].id)}}}catch{}},[]);
  useEffect(()=>{try{localStorage.setItem("liago-print-studio-v1",JSON.stringify(pages))}catch{}},[pages]);
- const print=(all=false)=>{const chosen=all?pages:[current];const popup=window.open("","_blank");if(!popup){setError("Permití las ventanas emergentes para guardar o imprimir el PDF.");return;}const html=chosen.map(p=>{const {svg,w,h}=svgFor(p);return `<div class="page" style="width:${w}mm;height:${h}mm">${svg}</div>`}).join("");const same=chosen.every(p=>p.paper===chosen[0].paper&&p.landscape===chosen[0].landscape);const {w,h}=svgFor(chosen[0]);popup.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Liago - paquete de impresión</title><style>@page{size:${w}mm ${h}mm;margin:0}html,body{margin:0;padding:0}.page{break-after:page;page-break-after:always;overflow:hidden}.page:last-child{break-after:auto}svg{width:100%;height:100%;display:block}@media screen{body{background:#ddd;padding:16px}.page{margin:0 auto 14px;background:white;box-shadow:0 1px 8px #aaa}}</style></head><body>${html}<script>onload=()=>{focus();print()}<\/script></body></html>`);popup.document.close();if(all&&!same)setError("El paquete combina tamaños diferentes. Para conservar las dimensiones exactas, usá un tamaño de papel único.");else setError("")};
+ const print=(all=false)=>{
+  const chosen=all?pages:[current];
+  const same=chosen.every(p=>p.paper===chosen[0].paper&&p.landscape===chosen[0].landscape);
+  if(all&&!same){setError("El paquete combina tamaños diferentes. Usá un único tamaño y orientación para conservar la escala real.");return;}
+  const {w,h}=svgFor(chosen[0]);
+  const html=chosen.map(p=>{const art=svgFor(p);return `<div class="page" style="width:${art.w}mm;height:${art.h}mm">${art.svg}</div>`}).join("");
+  // Print from a same-origin iframe instead of window.open, so popup blockers never intervene.
+  const previous=document.getElementById("liago-print-frame");
+  previous?.remove();
+  const iframe=document.createElement("iframe");
+  iframe.id="liago-print-frame";
+  iframe.setAttribute("title","Área de impresión Liago");
+  iframe.style.cssText="position:fixed;left:-10000px;top:0;width:1px;height:1px;border:0;opacity:0;pointer-events:none";
+  let printed=false;
+  iframe.onload=()=>{
+    if(printed)return;
+    printed=true;
+    const target=iframe.contentWindow;
+    if(!target){setError("No se pudo preparar la impresión. Probá nuevamente.");iframe.remove();return;}
+    const cleanup=()=>{window.setTimeout(()=>iframe.remove(),1000)};
+    target.addEventListener("afterprint",cleanup,{once:true});
+    try{target.focus();target.print();window.setTimeout(()=>{if(iframe.isConnected)iframe.remove()},120000);setError("")}
+    catch{iframe.remove();setError("No se pudo abrir el diálogo de impresión. Intentá nuevamente.")}
+  };
+  iframe.srcdoc=`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Liago - impresión</title><style>@page{size:${w}mm ${h}mm;margin:0}html,body{margin:0;padding:0;background:white}.page{break-after:page;page-break-after:always;overflow:hidden}.page:last-child{break-after:auto}svg{width:100%;height:100%;display:block}</style></head><body>${html}</body></html>`;
+  document.body.appendChild(iframe);
+ };
  const exportSvg=()=>save(new Blob([art.svg],{type:"image/svg+xml;charset=utf-8"}),"Liago "+template.name+".svg");
  const exportPng=async()=>{setBusy(true);try{const blob=new Blob([art.svg],{type:"image/svg+xml"}),url=URL.createObjectURL(blob),img=new Image();try{await new Promise<void>((ok,no)=>{img.onload=()=>ok();img.onerror=()=>no(Error("Error al renderizar"));img.src=url});const canvas=document.createElement("canvas");canvas.width=Math.round(art.w*300/25.4);canvas.height=Math.round(art.h*300/25.4);canvas.getContext("2d")?.drawImage(img,0,0,canvas.width,canvas.height);const png=await new Promise<Blob>((ok,no)=>canvas.toBlob(b=>b?ok(b):no(Error("PNG no disponible")),"image/png"));save(png,"Liago "+template.name+".png")}finally{URL.revokeObjectURL(url)}}catch{setError("No se pudo exportar PNG.")}finally{setBusy(false)}};
  const copy=async()=>{const p=new URLSearchParams({template:current.template,paper:current.paper});try{await navigator.clipboard.writeText(location.origin+"/plantillas?"+p);setError("Enlace copiado.")}catch{setError("No fue posible copiar el enlace.")}};
