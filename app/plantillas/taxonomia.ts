@@ -17,13 +17,13 @@ const groups:Record<string,CategoryId>={
  "Planificación":"planificacion","Lectura":"lectura","Registros":"hogar",
  "Música editable":"musica","Estudio visual":"creatividad","Deportes":"deportes",
  "Escritura y notas":"escritura","Matemáticas y técnica":"matematicas",
- "Práctica de escritura":"aprendizaje","Papel de música":"musica",
+ "Práctica de escritura":"aprendizaje","Padres e hijos":"aprendizaje","Papel de música":"musica",
  "Formularios financieros":"trabajo","Diseños creativos":"creatividad",
  "Más estructuras de papel":"escritura"
 };
 const specific:Record<string,CategoryId>={
  "habitos":"habitos","reto":"habitos","entrenamiento":"habitos",
- "tareas-ninos":"hogar","plantas":"hogar","receta":"hogar","peliculas":"lectura",
+ "tareas-ninos":"hogar","rutina-infantil":"hogar","plantas":"hogar","receta":"hogar","peliculas":"lectura",
  "calendario":"planificacion","fichas":"aprendizaje","cornell":"escritura",
  "hexagono":"matematicas","polar":"matematicas","historias":"creatividad",
  "frances":"aprendizaje","caligrafia":"aprendizaje","acordes":"musica","conjunto":"musica",
@@ -66,7 +66,18 @@ const aliases:Record<string,string>={
  "cheques":"finanzas cuenta registro pagos",
  "facturas":"cuentas cobros pagos seguimiento",
  "presupuesto":"gastos dinero mensual ahorro",
- "tareas-ninos":"niños familia hogar tareas rutina"
+ "tareas-ninos":"niños familia hogar tareas rutina",
+ "rutina-infantil":"mañana tarde noche hábitos niños escuela hogar",
+ "nombre-cajas":"letras en casillas nombre preescolar primaria",
+ "nombre-recortar":"recortar pegar letras nombre papel",
+ "nombre-buscar":"buscar encontrar reconocimiento de nombres",
+ "nombre-buscar-letras":"letras alfabeto cuadrícula buscar",
+ "nombre-mira-copia":"ver copiar repasar escribir",
+ "nombre-escribir":"escribir caligrafia independiente",
+ "nombre-colorear":"dibujar pintar colores letras",
+ "nombre-plastilina":"masa moldear modelar letras",
+ "nombre-arcoiris":"colores repasado letras",
+ "numeros-repasar":"números 0 a 9 números trazado conteo"
 };
 export function categoryForTemplate(template:{id:string;group:string}):CategoryId{
  return specific[template.id]||groups[template.group]||"escritura";
