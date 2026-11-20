@@ -4,6 +4,7 @@ import { requireActiveOrganization } from "@/lib/organizations/active-organizati
 import { PrintButton } from "@/components/common/print-button";
 import { cancelPaymentAction, updatePaymentDocumentAction } from "@/app/app/payments/actions";
 import { ExportJpgButton } from "@/components/common/export-jpg-button";
+import { AssignMissingPaymentCustomerForm } from "@/components/customers/assign-missing-payment-customer-form";
 
 export default async function PaymentReceiptPage({params,searchParams}:{params:Promise<{id:string}>;searchParams:Promise<{updated?:string;error?:string}>}) {
   const message=await searchParams;
@@ -15,6 +16,10 @@ export default async function PaymentReceiptPage({params,searchParams}:{params:P
     supabase.from("payment_allocations").select("debt_id,amount,debts(sale_id)").eq("organization_id",organizationId).eq("payment_id",id).limit(10),
   ]);
   if(!payment)notFound();
+  const canAssignMissingCustomer=["OWNER","ADMIN","MANAGER"].includes(role)&&payment.status==="CONFIRMED"&&!payment.customer_id&&!!payment.sale_id;
+  const {data:availableCustomers}=canAssignMissingCustomer?await supabase.from("customers")
+    .select("id,name,customer_code,phone,whatsapp").eq("organization_id",organizationId)
+    .eq("status","ACTIVE").is("deleted_at",null).order("name"):{data:null};
   const customer=payment.customers as unknown as {name:string;tax_id:string|null;phone:string|null;whatsapp:string|null;email:string|null;address:string|null}|null;
   const branch=payment.branches as unknown as {name:string;address:string|null}|null;
   const linkedDebt=allocations?.[0]?.debts as unknown as {sale_id:string|null}|null;
@@ -50,6 +55,10 @@ export default async function PaymentReceiptPage({params,searchParams}:{params:P
           </div>
         </form>
       </details>:null}
+    {canAssignMissingCustomer?<details className="rounded-lg border border-amber-200 bg-amber-50/40 p-4 text-sm print:hidden">
+      <summary className="cursor-pointer font-semibold text-amber-900">Cliente pendiente de asignar · Corregir recibo</summary>
+      <AssignMissingPaymentCustomerForm paymentId={payment.id} customers={availableCustomers||[]}/>
+    </details>:null}
     <article id="payment-document" className="rounded-xl border border-slate-200 bg-white p-7 shadow-sm md:p-10 print:rounded-none print:border-0 print:p-0 print:shadow-none">
       <div className="mb-7 border-b-2 border-emerald-700 pb-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
