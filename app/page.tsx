@@ -110,7 +110,7 @@ export default function HomePage() {
           </Link>
           <nav className="hidden items-center gap-7 text-sm font-semibold text-slate-600 md:flex">
             <a href="#funciones" className="hover:text-blue-700">Funciones</a>
-            <Link href="/plantillas" className="hover:text-blue-700">Plantillas gratis</Link>
+            <Link href="/plantillas/inicio" className="hover:text-blue-700">Plantillas gratis</Link>
             <a href="#planes" className="hover:text-blue-700">Planes</a>
             <a href="#comparar" className="hover:text-blue-700">Comparar</a>
           </nav>
@@ -227,7 +227,7 @@ export default function HomePage() {
       <footer className="border-t border-slate-200 bg-white py-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2"><Building2 className="h-4 w-4" /> LiaGo · Tu negocio en movimiento.</div>
-          <div className="flex items-center gap-2"><LifeBuoy className="h-4 w-4" /> Soporte incluido desde la plataforma.</div>
+          <div className="flex flex-wrap items-center gap-4"><span>Creado por <strong className="font-semibold text-slate-700">Adrián Soto</strong></span><span className="flex items-center gap-2"><LifeBuoy className="h-4 w-4" /> Soporte incluido desde la plataforma.</span></div>
         </div>
       </footer>
     </main>
