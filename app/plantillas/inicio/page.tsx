@@ -1,7 +1,7 @@
 import Link from "next/link";
 import PlantillasNav from "../nav";
 import EditorRapido from "./editor-rapido";
-import {ArrowRight,BookOpen,CalendarDays,Grid3X3,Mail,MessageCircle,PenLine,Printer} from "lucide-react";
+import {ArrowRight,BookOpen,CalendarDays,Grid3X3,Mail,MessageCircle,PenLine,Printer,Search} from "lucide-react";
 
 const sections=[
  {title:"Planificadores",detail:"Planes diarios, semanales, mensuales y anuales con calendario automático.",icon:CalendarDays,href:"/plantillas?template=plan-semanal"},
@@ -13,6 +13,16 @@ export default function InicioPlantillas(){
  return <main className="min-h-screen bg-[#faf9f6] text-[#282824]">
  <PlantillasNav active="inicio"/>
  <EditorRapido />
+ <section aria-labelledby="buscar-plantillas-title" className="border-b border-stone-200 bg-white px-5 py-7 sm:px-8">
+  <div className="mx-auto flex max-w-7xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
+   <div><h2 id="buscar-plantillas-title" className="font-serif text-2xl">¿Buscás otra plantilla?</h2><p className="mt-1 text-sm text-stone-600">Encontrá planificadores, apuntes, hojas escolares y más.</p></div>
+   <form role="search" action="/plantillas/catalogo" method="get" className="flex w-full max-w-lg overflow-hidden rounded-lg border border-stone-300 bg-white focus-within:border-blue-800 focus-within:ring-2 focus-within:ring-blue-100">
+    <Search size={19} className="ml-3 mt-3.5 shrink-0 text-stone-400"/>
+    <input name="buscar" type="search" aria-label="Buscar plantillas" placeholder="Ej. hábitos, música, caligrafía..." className="min-w-0 flex-1 px-3 py-3 text-sm outline-none"/>
+    <button type="submit" className="bg-blue-900 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-800">Buscar</button>
+   </form>
+  </div>
+ </section>
  <section className="border-t border-stone-200 bg-white py-14">
   <div className="mx-auto max-w-7xl px-6">
    <div className="mb-7 flex flex-wrap items-end justify-between gap-3"><div><p className="mb-2 text-xs uppercase tracking-widest text-blue-800">Catálogo</p><h2 className="font-serif text-3xl">Encontrá tu próxima plantilla</h2></div><Link href="/plantillas/catalogo" className="inline-flex items-center gap-1 text-sm font-semibold text-blue-900">Ver todo <ArrowRight size={15}/></Link></div>
