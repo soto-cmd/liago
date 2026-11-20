@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { createSaleAction } from "@/app/app/sales/actions";
+import { CustomerPicker } from "@/components/customers/customer-picker";
 
 type Product = { id: string; code: string; name: string; sale_price: number; tax_rate: number; unit: string };
 type Customer = { id: string; name: string; customer_code: string | null };
@@ -29,10 +30,10 @@ export function NewSaleForm({ products, customers, branches }: { products: Produ
     return sum + subtotal - discount + tax;
   }, 0), [items]);
 
-  const needsCustomer = saleType !== "CASH";
+  const needsCustomer = true;
   const partialValue = Number(partialPaid) || 0;
   const partialValid = saleType !== "PARTIAL" || (partialValue > 0 && partialValue < total);
-  const canSubmit = items.length > 0 && (!needsCustomer || Boolean(customerId)) && partialValid;
+  const canSubmit = items.length > 0 && Boolean(customerId) && partialValid;
 
   function addItem() {
     const product = products.find((p) => p.id === selected);
@@ -55,17 +56,14 @@ export function NewSaleForm({ products, customers, branches }: { products: Produ
 
     <div className="grid gap-3 md:grid-cols-4">
       <select name="branch_id" required className="rounded-lg border px-3 py-2 text-sm"><option value="">Sucursal *</option>{branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</select>
-      <select name="customer_id" value={customerId} onChange={(e) => setCustomerId(e.target.value)} required={needsCustomer} className="rounded-lg border px-3 py-2 text-sm">
-        <option value="">{needsCustomer ? "Seleccionar cliente *" : "Consumidor final"}</option>
-        {customers.map((c) => <option key={c.id} value={c.id}>{c.customer_code ? `${c.customer_code} · ` : ""}{c.name}</option>)}
-      </select>
+      <CustomerPicker customers={customers} value={customerId} onChange={setCustomerId}/>
       <select name="sale_type" value={saleType} onChange={(e) => { setSaleType(e.target.value as SaleType); setPartialPaid(""); }} className="rounded-lg border px-3 py-2 text-sm">
         <option value="CASH">Contado</option><option value="PARTIAL">Pago parcial</option><option value="CREDIT">Crédito</option>
       </select>
       {saleType === "CASH" ? <div className="rounded-lg border bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">Cobro total automático</div> : <input name="due_date" type="date" className="rounded-lg border px-3 py-2 text-sm" />}
     </div>
 
-    {needsCustomer && !customerId ? <div className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">Para una venta {saleType === "CREDIT" ? "a crédito" : "con pago parcial"} debés seleccionar un cliente.</div> : null}
+    {!customerId ? <div className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">Seleccioná o agregá un cliente para emitir el recibo.</div> : null}
 
     <div className="rounded-xl border bg-neutral-50 p-3">
       <div className="grid gap-2 md:grid-cols-[1fr_120px_auto]">
