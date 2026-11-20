@@ -110,6 +110,7 @@ export default function HomePage() {
           </Link>
           <nav className="hidden items-center gap-7 text-sm font-semibold text-slate-600 md:flex">
             <a href="#funciones" className="hover:text-blue-700">Funciones</a>
+            <Link href="/plantillas" className="hover:text-blue-700">Plantillas gratis</Link>
             <a href="#planes" className="hover:text-blue-700">Planes</a>
             <a href="#comparar" className="hover:text-blue-700">Comparar</a>
           </nav>
@@ -136,6 +137,7 @@ export default function HomePage() {
               Empezar gratis <ArrowRight className="h-4 w-4" />
             </Link>
             <a href="#planes" className="liago-btn-secondary h-12 px-6 text-base">Ver precios</a>
+            <Link href="/plantillas" className="liago-btn-secondary h-12 px-6 text-base">Crear hojas imprimibles</Link>
           </div>
           <p className="mt-4 text-sm text-slate-500">Plan FREE sin costo. Los planes pagos están expresados en guaraníes.</p>
         </div>
