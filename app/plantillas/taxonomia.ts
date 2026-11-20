@@ -26,7 +26,7 @@ const specific:Record<string,CategoryId>={
  "tareas-ninos":"hogar","plantas":"hogar","receta":"hogar","peliculas":"lectura",
  "calendario":"planificacion","fichas":"aprendizaje","cornell":"escritura",
  "hexagono":"matematicas","polar":"matematicas","historias":"creatividad",
- "frances":"aprendizaje","caligrafia":"aprendizaje","acordes":"musica",
+ "frances":"aprendizaje","caligrafia":"aprendizaje","acordes":"musica","conjunto":"musica",
  "contable":"trabajo","carta":"escritura","puntos":"matematicas",
  "trazado-nombre":"aprendizaje","trazado-lineas":"aprendizaje",
  "mi-zi-ge":"aprendizaje","comic":"creatividad","tira-comica":"creatividad"
