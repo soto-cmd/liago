@@ -13,7 +13,7 @@ const n=(x:number)=>Math.round(x*100)/100;
 export function learningSvg(id:LearningId,s:Settings,w:number,h:number):string{
  // Coordenadas lógicas A4: se escala a las medidas reales que eligió la persona.
  const scale=Math.min(w/210,h/297),pageW=w/scale,pageH=h/scale;
- const left=14,right=pageW-14,bottom=pageH-18,width=right-left;
+ const left=14,right=pageW-14,width=right-left;
  const ink=/^#[0-9a-f]{3,8}$/i.test(s.ink)?s.ink:"#26354a";
  const bg=/^#[0-9a-f]{3,8}$/i.test(s.background)?s.background:"#ffffff";
  let art="";
@@ -27,7 +27,6 @@ export function learningSvg(id:LearningId,s:Settings,w:number,h:number):string{
   art+=`<rect x="${n(x)}" y="${n(y)}" width="${n(bw)}" height="${n(bh)}" rx="${radius}" fill="${fill}" stroke="${stroke}" stroke-width=".4"/>`;
  };
  const circle=(x:number,y:number,r:number,stroke=ink,fill="none",sw=.4)=>{art+=`<circle cx="${n(x)}" cy="${n(y)}" r="${r}" stroke="${stroke}" stroke-width="${sw}" fill="${fill}"/>`};
- const tracing=(value:string,x:number,y:number,size=19)=>txt(value,x,y,size,true,"start","#adb8c3",'stroke="#adb8c3" stroke-width=".25" stroke-dasharray="1 1" fill="none"');
  const lineGuides=(x:number,y:number,full:number)=>{ln(x,y,x+full,y,"#cad2db");ln(x,y-8,x+full,y-8,"#cbd2db",.23,"1.5 1.5");ln(x,y-17,x+full,y-17,"#cad2db")};
  const seedName=(s.traceInput||s.subtitle||"LIA").trim().slice(0,22)||"LIA";
  const heading:Record<LearningId,string>={
