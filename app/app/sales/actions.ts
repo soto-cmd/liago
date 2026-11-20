@@ -53,7 +53,7 @@ export async function createSaleAction(formData: FormData) {
   const paymentMethod = String(formData.get("payment_method") || "") || null;
   const notes = String(formData.get("notes") || "").trim() || null;
 
-  if ((saleType === "PARTIAL" || saleType === "CREDIT") && !customerId) {
+  if (!customerId || !/^[a-f0-9-]{36}$/i.test(customerId)) {
     redirect("/app/sales?error=customer_required");
   }
 
