@@ -1,6 +1,6 @@
 import Link from "next/link";
 import PlantillasNav from "../nav";
-import {ArrowRight,BookOpen,CalendarDays,Grid3X3,Mail,MessageCircle,PenLine,Printer} from "lucide-react";
+import {ArrowRight,BookOpen,CalendarDays,Grid3X3,Mail,MessageCircle,PenLine,Printer,Search} from "lucide-react";
 
 const sections=[
  {title:"Planificadores",detail:"Planes diarios, semanales, mensuales y anuales con calendario automático.",icon:CalendarDays,href:"/plantillas?template=plan-semanal"},
@@ -20,6 +20,14 @@ export default function InicioPlantillas(){
     <Link href="/plantillas/catalogo" className="inline-flex items-center gap-2 rounded-lg bg-blue-900 px-5 py-3 font-semibold text-white">Explorar plantillas <ArrowRight size={17}/></Link>
     <Link href="/plantillas" className="inline-flex items-center gap-2 rounded-lg border border-stone-300 bg-white px-5 py-3 font-semibold">Abrir editor</Link>
    </div>
+   <form role="search" action="/plantillas/catalogo" method="get" className="mt-7 max-w-lg">
+    <label htmlFor="buscar-plantilla-inicio" className="mb-2 block text-sm font-semibold text-stone-700">¿Qué plantilla necesitás?</label>
+    <div className="flex overflow-hidden rounded-lg border border-stone-300 bg-white shadow-sm focus-within:border-blue-800 focus-within:ring-2 focus-within:ring-blue-100">
+     <Search size={19} className="ml-3 mt-3 shrink-0 text-stone-400"/>
+     <input id="buscar-plantilla-inicio" type="search" name="buscar" placeholder="Ej. registro de hábitos, agenda, notas" className="min-w-0 flex-1 px-3 py-3 text-sm outline-none"/>
+     <button type="submit" className="bg-blue-900 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-800">Buscar</button>
+    </div>
+   </form>
    <p className="mt-8 text-sm text-stone-500">Una herramienta de Liago · Creado por <strong className="text-stone-700">Adrián Soto</strong>.</p>
   </div>
   <div className="relative flex min-h-[440px] items-center justify-center overflow-hidden rounded-2xl border border-stone-200 bg-[#f1ede5] p-7 sm:min-h-[560px]" style={{backgroundImage:"linear-gradient(#c8ced033 1px, transparent 1px),linear-gradient(90deg,#c8ced033 1px, transparent 1px)",backgroundSize:"20px 20px"}}>
@@ -37,6 +45,10 @@ export default function InicioPlantillas(){
   <div className="mx-auto max-w-7xl px-6">
    <div className="mb-7 flex flex-wrap items-end justify-between gap-3"><div><p className="mb-2 text-xs uppercase tracking-widest text-blue-800">Catálogo</p><h2 className="font-serif text-3xl">Encontrá tu próxima plantilla</h2></div><Link href="/plantillas/catalogo" className="inline-flex items-center gap-1 text-sm font-semibold text-blue-900">Ver todo <ArrowRight size={15}/></Link></div>
    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{sections.map(item=><Link key={item.title} href={item.href} className="group rounded-xl border border-stone-200 p-5 transition hover:border-blue-500 hover:shadow-md"><item.icon className="mb-5 h-7 w-7 text-blue-900"/><h3 className="font-serif text-xl">{item.title}</h3><p className="mt-2 text-sm leading-6 text-stone-600">{item.detail}</p><span className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-blue-900">Abrir <ArrowRight size={14}/></span></Link>)}</div>
+   <Link href="/plantillas/padres-hijos" className="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-blue-100 bg-blue-50/60 px-5 py-4 transition hover:border-blue-400">
+    <div><p className="text-xs font-bold uppercase tracking-wide text-blue-900">Nueva sección</p><h3 className="mt-1 font-serif text-xl">Padres e hijos</h3><p className="mt-1 text-sm text-stone-600">Actividades para practicar nombres, letras y números; tablas de tareas y rutinas familiares.</p></div>
+    <span className="inline-flex items-center gap-2 text-sm font-semibold text-blue-900">Explorar actividades <ArrowRight size={16}/></span>
+   </Link>
   </div>
  </section>
  <section className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-5 px-6 py-12"><div><h2 className="font-serif text-2xl">Prepará un paquete de impresión</h2><p className="mt-2 text-sm text-stone-500">Combiná varias hojas y guardalas como PDF desde el navegador.</p></div><Link href="/plantillas?panel=paquete" className="inline-flex items-center gap-2 rounded-lg border border-blue-900 px-5 py-3 font-semibold text-blue-900"><Printer size={17}/> Ir al paquete</Link></section>

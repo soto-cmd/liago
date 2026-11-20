@@ -1,9 +1,9 @@
 "use client";
 import Link from "next/link";
 import {ArrowLeft,Layers} from "lucide-react";
-type Active="inicio"|"plantillas"|"imprimibles"|"editor";
+type Active="inicio"|"plantillas"|"imprimibles"|"familia"|"editor";
 export default function PlantillasNav({active,packageCount}:{active:Active;packageCount?:number}){
- const links=[{id:"inicio",label:"Inicio",href:"/plantillas/inicio"},{id:"plantillas",label:"Plantillas",href:"/plantillas/catalogo"},{id:"imprimibles",label:"Imprimibles",href:"/plantillas/imprimibles"},{id:"editor",label:"Editor",href:"/plantillas"}] as const;
+ const links=[{id:"inicio",label:"Inicio",href:"/plantillas/inicio"},{id:"plantillas",label:"Plantillas",href:"/plantillas/catalogo"},{id:"imprimibles",label:"Imprimibles",href:"/plantillas/imprimibles"},{id:"familia",label:"Padres e hijos",href:"/plantillas/padres-hijos"},{id:"editor",label:"Editor",href:"/plantillas"}] as const;
  return <header className="sticky top-0 z-30 border-b border-[#e8e3da] bg-[#faf9f6]/95 backdrop-blur">
  <div className="mx-auto flex max-w-[1520px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-7">
  <Link href="/plantillas/inicio" className="flex shrink-0 items-center gap-3 text-xl font-semibold"><span className="flex flex-col gap-1"><span className="block h-[4px] w-7 bg-stone-900"/><span className="block h-[4px] w-5 bg-blue-900"/></span><span className="font-serif text-[27px] tracking-tight">Liago</span></Link>
