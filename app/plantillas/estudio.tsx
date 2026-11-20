@@ -122,7 +122,14 @@ export default function Estudio(){
 </div>
 </div></div>}
 <div className="grid min-h-[calc(100vh-162px)] flex-1 lg:grid-cols-[330px_minmax(0,1fr)_245px]">
- <aside className="max-h-[calc(100vh-155px)] overflow-y-auto border-r border-stone-200 bg-[#faf9f6] p-5"><div className="rounded-xl border border-stone-200 bg-white p-3">
+ <aside className="max-h-[calc(100vh-155px)] overflow-y-auto border-r border-stone-200 bg-[#faf9f6] p-5"><div className="mb-4 rounded-xl border border-blue-200 bg-white p-3">
+<h2 className="text-sm font-bold text-slate-800">Cambiar de planificador</h2>
+<p className="mt-1 text-xs text-stone-500">Elegí directamente qué tipo de planificación querés imprimir.</p>
+<div className="mt-3 grid grid-cols-3 gap-2">
+{([{id:"plan-diario",label:"Diario"},{id:"plan-semanal",label:"Semanal"},{id:"plan-mensual",label:"Mensual"}] as const).map(item=><button key={item.id} type="button" onClick={()=>update({template:item.id,variantId:undefined})} aria-pressed={current.template===item.id} className={`min-h-11 rounded-lg border px-1 py-2 text-xs font-semibold transition-colors ${current.template===item.id?"border-blue-800 bg-blue-900 text-white":"border-stone-200 bg-stone-50 text-slate-700 hover:border-blue-500 hover:bg-blue-50"}`}>{item.label}</button>)}
+</div>
+</div>
+<div className="rounded-xl border border-stone-200 bg-white p-3">
 <h2 className="font-serif text-lg">Selector de plantillas</h2>
 <p className="mt-1 text-xs text-stone-500">Explorá categorías y elegí desde una vista previa.</p>
 <button type="button" onClick={()=>{setGalleryMode("plantillas");setGalleryTab(template.group);setGalleryPage(0);setGalleryOpen(true)}} className="mt-3 w-full rounded-lg bg-blue-900 px-3 py-3 text-sm font-semibold text-white">Ver catálogo con miniaturas</button>
