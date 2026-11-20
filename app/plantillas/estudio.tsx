@@ -103,10 +103,10 @@ export default function Estudio(){
 <button role="tab" aria-selected={galleryMode==="plantillas"} onClick={()=>{setGalleryMode("plantillas");setGalleryTab("Todas");setGalleryPage(0)}} className={`rounded-md px-3 py-2 text-xs font-bold ${galleryMode==="plantillas"?"bg-white text-blue-900 shadow-sm":"text-stone-600"}`}>Plantillas ({entries.length})</button>
 <button role="tab" aria-selected={galleryMode==="variantes"} onClick={()=>{setGalleryMode("variantes");setGalleryTab("Todas");setGalleryPage(0)}} className={`rounded-md px-3 py-2 text-xs font-bold ${galleryMode==="variantes"?"bg-white text-blue-900 shadow-sm":"text-stone-600"}`}>Variantes ({variantTotal})</button>
 </div>
-<input aria-label="Buscar en el catálogo" value={galleryMode==="plantillas"?query:variantSearch} onChange={e=>galleryMode==="plantillas"?setQuery(e.target.value):setVariantSearch(e.target.value);setGalleryPage(0)} className="min-w-40 flex-1 rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm" placeholder="Buscar por nombre o categoría..."/>
+<input aria-label="Buscar en el catálogo" value={galleryMode==="plantillas"?query:variantSearch} onChange={e=>{if(galleryMode==="plantillas")setQuery(e.target.value);else setVariantSearch(e.target.value);setGalleryPage(0)}} className="min-w-40 flex-1 rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm" placeholder="Buscar por nombre o categoría..."/>
 </div>
 <div role="tablist" aria-label="Categorías" className="flex shrink-0 gap-2 overflow-x-auto border-b border-stone-200 px-5 py-3">
-{["Todas",...(galleryMode==="plantillas"?groups:variantFamilies.map(f=>f.name))].map(group=><button key={group} role="tab" aria-selected={galleryTab===group} onClick={()=>setGalleryTab(group);setGalleryPage(0)} className={`shrink-0 rounded-full px-3 py-2 text-xs font-semibold ${galleryTab===group?"bg-blue-900 text-white":"border border-stone-200 bg-white hover:border-blue-400"}`}>{group}</button>)}
+{["Todas",...(galleryMode==="plantillas"?groups:variantFamilies.map(f=>f.name))].map(group=><button key={group} role="tab" aria-selected={galleryTab===group} onClick={()=>{setGalleryTab(group);setGalleryPage(0)}} className={`shrink-0 rounded-full px-3 py-2 text-xs font-semibold ${galleryTab===group?"bg-blue-900 text-white":"border border-stone-200 bg-white hover:border-blue-400"}`}>{group}</button>)}
 </div>
 <div className="flex-1 overflow-y-auto p-4 sm:p-6">
 {galleryMode==="plantillas"?<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
