@@ -100,7 +100,7 @@ export function renderKidsSheet(id:string,s:KidsSheetOptions,w:number,h:number):
   txt("MI MODELO",m,base+4,3.1,true);smallName(m+5,base+21,ink,false,15);
   for(let i=0;i<9;i++){const y=base+43+i*22;guideline(y);if(i<2)smallName(m+5,y-2,ink,true,13)}
  }else if(id==="nombre-colorear"||id==="nombre-plastilina"){
-  const rows=id==="nombre-colorear"?3:Math.ceil(letters.length/4),gap=Math.min(61,(footer-base-8)/Math.max(1,rows));
+  const rows=id==="nombre-colorear"?3:Math.ceil(letters.length/4),gap=Math.min(61,(footer-base-30)/Math.max(1,rows));
   txt(id==="nombre-colorear"?"Pintá cada letra con tus colores favoritos.":"Formá las letras con tiras de masa sobre el papel.",m,base+4,3.3);
   if(id==="nombre-colorear"){
    for(let i=0;i<rows;i++){
@@ -178,7 +178,7 @@ export function renderKidsSheet(id:string,s:KidsSheetOptions,w:number,h:number):
  }else if(id==="rutina-infantil"){
   const labels=["MAÑANA","TARDE","NOCHE"],y0=base+12;
   labels.forEach((title,index)=>{
-   const y=y0+index*75;rect(m,y,inner,68,"none","#d4dfe9",.3,4);
+   const y=y0+index*72;rect(m,y,inner,64,"none","#d4dfe9",.3,4);
    rect(m,y,inner,11,"#e8eef5","#e8eef5",.1,3);
    txt(title,m+5,y+7.5,3.3,true);
    for(let j=0;j<2;j++){
