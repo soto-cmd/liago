@@ -1,6 +1,7 @@
 import Link from "next/link";
 import PlantillasNav from "../nav";
-import {ArrowRight,BookOpen,CalendarDays,Grid3X3,Mail,MessageCircle,PenLine,Printer,Search} from "lucide-react";
+import EditorRapido from "./editor-rapido";
+import {ArrowRight,BookOpen,CalendarDays,Grid3X3,Mail,MessageCircle,PenLine,Printer} from "lucide-react";
 
 const sections=[
  {title:"Planificadores",detail:"Planes diarios, semanales, mensuales y anuales con calendario automático.",icon:CalendarDays,href:"/plantillas?template=plan-semanal"},
@@ -11,36 +12,7 @@ const sections=[
 export default function InicioPlantillas(){
  return <main className="min-h-screen bg-[#faf9f6] text-[#282824]">
  <PlantillasNav active="inicio"/>
- <section className="mx-auto grid max-w-7xl items-center gap-10 px-6 py-12 md:min-h-[610px] lg:grid-cols-[.9fr_1.1fr] lg:gap-20">
-  <div>
-   <p className="mb-4 text-xs font-bold uppercase tracking-[.21em] text-blue-800">Editor de papel · Liago</p>
-   <h1 className="max-w-lg font-serif text-5xl leading-[1.09] tracking-tight sm:text-6xl lg:text-7xl">Plantillas de papel imprimibles gratis</h1>
-   <p className="mt-6 max-w-lg text-lg leading-8 text-stone-600">Elegí una plantilla, ajustá las medidas en milímetros, previsualizá el resultado y prepará tus hojas para imprimir.</p>
-   <div className="mt-8 flex flex-wrap gap-3">
-    <Link href="/plantillas/catalogo" className="inline-flex items-center gap-2 rounded-lg bg-blue-900 px-5 py-3 font-semibold text-white">Explorar plantillas <ArrowRight size={17}/></Link>
-    <Link href="/plantillas" className="inline-flex items-center gap-2 rounded-lg border border-stone-300 bg-white px-5 py-3 font-semibold">Abrir editor</Link>
-   </div>
-   <form role="search" action="/plantillas/catalogo" method="get" className="mt-7 max-w-lg">
-    <label htmlFor="buscar-plantilla-inicio" className="mb-2 block text-sm font-semibold text-stone-700">¿Qué plantilla necesitás?</label>
-    <div className="flex overflow-hidden rounded-lg border border-stone-300 bg-white shadow-sm focus-within:border-blue-800 focus-within:ring-2 focus-within:ring-blue-100">
-     <Search size={19} className="ml-3 mt-3 shrink-0 text-stone-400"/>
-     <input id="buscar-plantilla-inicio" type="search" name="buscar" placeholder="Ej. registro de hábitos, agenda, notas" className="min-w-0 flex-1 px-3 py-3 text-sm outline-none"/>
-     <button type="submit" className="bg-blue-900 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-800">Buscar</button>
-    </div>
-   </form>
-   <p className="mt-8 text-sm text-stone-500">Una herramienta de Liago · Creado por <strong className="text-stone-700">Adrián Soto</strong>.</p>
-  </div>
-  <div className="relative flex min-h-[440px] items-center justify-center overflow-hidden rounded-2xl border border-stone-200 bg-[#f1ede5] p-7 sm:min-h-[560px]" style={{backgroundImage:"linear-gradient(#c8ced033 1px, transparent 1px),linear-gradient(90deg,#c8ced033 1px, transparent 1px)",backgroundSize:"20px 20px"}}>
-   <div className="relative w-full max-w-[420px]">
-    <div className="mb-2 flex justify-between pl-5 text-[10px] text-stone-400"><span>0</span><span>50</span><span>100</span><span>150</span><span>200 mm</span></div>
-    <div className="relative aspect-[210/297] w-full border border-stone-300 bg-white p-[9%] shadow-[10px_12px_0_#d8d2c8,0_20px_44px_#00000020]">
-     <div className="h-full w-full" style={{backgroundImage:"radial-gradient(circle,#ab9889 0.75px,transparent 0.95px)",backgroundSize:"14px 14px"}}/>
-     <p className="absolute inset-x-0 bottom-4 text-center text-[10px] tracking-widest text-stone-300">Liago</p>
-    </div>
-    <div className="absolute -left-5 top-8 flex h-[70%] flex-col justify-between text-[10px] text-stone-400"><span>0</span><span>50</span><span>100</span><span>150</span><span>200 mm</span></div>
-   </div>
-  </div>
- </section>
+ <EditorRapido />
  <section className="border-t border-stone-200 bg-white py-14">
   <div className="mx-auto max-w-7xl px-6">
    <div className="mb-7 flex flex-wrap items-end justify-between gap-3"><div><p className="mb-2 text-xs uppercase tracking-widest text-blue-800">Catálogo</p><h2 className="font-serif text-3xl">Encontrá tu próxima plantilla</h2></div><Link href="/plantillas/catalogo" className="inline-flex items-center gap-1 text-sm font-semibold text-blue-900">Ver todo <ArrowRight size={15}/></Link></div>
